@@ -3,6 +3,8 @@
 
 execname := '$RCSfile: cmdline.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
+pqueue := SortedCollection new.
+
 
 FileStream extend [
    nl := Character nl.
@@ -29,7 +31,7 @@ Character extend [
          ]
    visible [
         "stdout << (self asInteger)."
-      self isPrint ifTrue: [^' ', self asString]             
+      self isPrint ifTrue: [^' ', self asString, ' ']             
                    ifFalse: [ self digits
                       ifTrue:[
                            ^ 'x', ((self asInteger printStringRadix: 16) copyFrom: 4 to: 5)]
@@ -81,11 +83,44 @@ Object subclass: ZeroArray [
    ]
 ]
 
+freqtable := ZeroArray new: 256.
+
+Object subclass: Node [
+nl := Character nl.
+   |count char|
+   count [^ count]
+   char  [^ char]
+   Node class >> new [self shouldNotImplement]
+
+   Node class >> new: count char: char [
+      |result|
+      result := super new.
+      result setChar: char setCount: count.
+      ^ result.
+   ]
+
+   setChar: myChar setCount: myCount [
+      char := myChar.
+      count := myCount.
+   ]
+
+   <= other [
+         count = other count
+         ifTrue: [^ char <= other char]
+         ifFalse: [^ count <= other count].
+   ]
+
+   printOn: aStream [
+      ^ aStream << char asCharacter visible<< '     '<<count .
+   ]
+]
+
 "main function"
 
-"pipline for input stream"
+"var to hold pipline for input stream"
 |infile|
-Smalltalk arguments: '-d -t -c -u'
+
+"parse the options and filename"Smalltalk arguments: '-d -t -c -u'
 do: [:opt :arg |
    "'option: ' display.
    opt display."
@@ -117,7 +152,7 @@ do: [:opt :arg |
 ].
 
 
-freqtable := ZeroArray new: 256.
+
 
 [infile atEnd not] whileTrue: [
    |ordChar|
@@ -127,9 +162,14 @@ freqtable := ZeroArray new: 256.
 
 infile close.
 
-freqtable keysAndValuesDo: [:key :value |
-   (value notNil and: [value > 0]) ifTrue: [
-      stdout <<  key asCharacter visible << '     ' << value
+
+freqtable keysAndValuesDo: [:key :count |
+   (count notNil and: [count > 0]) ifTrue: [
+      pqueue add: (Node new: count char: key).
+      stdout <<  key asCharacter visible << '     ' << count
              << nl.
    ]
 ].
+stdout <<'output from sortedCollection'<< nl.
+
+pqueue do: [:item| stdout << item << nl.].
