@@ -83,6 +83,7 @@ Object subclass: ZeroArray [
 ]
 
 freqtable := ZeroArray new: 256.
+outputtable := ZeroArray new: 256.
 
 Object subclass: Leaf [
    |char count|
@@ -194,29 +195,22 @@ do: [:opt :arg |
 ].
 
 
-
-
 [infile atEnd not] whileTrue: [
    |ordChar|
    ordChar := infile next asInteger.
    freqtable incr: ordChar.
 ].
 
-
-
-
 freqtable keysAndValuesDo: [:key :count |
    (count notNil and: [count > 0]) ifTrue: [
       queue add: (Leaf new: key count: count).
-      stdout <<  key asCharacter visible << '     ' << count
-             << nl.
+      "stdout <<  key asCharacter visible << '     ' << count
+             << nl."
    ]
 ].
 
 "stdout <<'output from sortedCollection'<< nl.
 queue do: [:item| stdout << item << nl.]."
-
-
 
 "stdout << nl << '----bulid tree-----' << nl."
 [queue notEmpty] whileTrue: [
@@ -243,14 +237,25 @@ queue do: [:item| stdout << item << nl.]."
 ].
 
 decodingTreeFlag = 1 ifTrue:[
-     stdout << '-----------decoding tree--------------' << nl.
+     stdout << '------------decoding tree--------------' << nl.
      stdout << decodingtree << nl.].
 
-stdout << nl << 'encode' << nl.
+"stdout << nl << 'encode' << nl."
 decodingtree inorder: [:char :string |
-   stdout <<  char asCharacter visible<< '    ' << string << nl.
+   outputtable at: char put: string.
+   "stdout <<  char asCharacter visible<<'    '<< (freqtable at: char) 
+               <<'        ' << string << nl."
 ] prefix: ''.
 
+stdout << nl << '------------output---------------------' << nl.
+
+outputtable keysAndValuesDo: [:key :count |
+   (count notNil and: [count > 0]) ifTrue: [
+      stdout <<  key asCharacter visible << '     '
+             << (freqtable at: key) <<'    '<<count
+             << nl.
+   ]
+].
 
 
 infile close.
