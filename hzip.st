@@ -3,8 +3,8 @@
 
 execname := '$RCSfile: cmdline.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
-pqueue := SortedCollection new.
-
+queue := SortedCollection new.
+|decodingtree|
 
 FileStream extend [
    nl := Character nl.
@@ -20,7 +20,6 @@ FileStream extend [
       ]
    ]
 ]
-
 
 Character extend [
    isPrint [
@@ -85,60 +84,103 @@ Object subclass: ZeroArray [
 
 freqtable := ZeroArray new: 256.
 
-Object subclass: Node [
-nl := Character nl.
-   |count char|
-   count [^ count]
-   char  [^ char]
-   Node class >> new [self shouldNotImplement]
+Object subclass: Leaf [
+   |char count|
+   char [ ^ char ]
+   count [ ^ count ]
 
-   Node class >> new: count char: char [
-      |result|
-      result := super new.
-      result setChar: char setCount: count.
-      ^ result.
+   Leaf class >> new [
+      self shouldNotImplement
    ]
 
-   setChar: myChar setCount: myCount [
-      char := myChar.
-      count := myCount.
+   Leaf class >> new: aChar count: aCount [
+      |result|
+      result := super new.
+      result setChar: aChar andCount: aCount.
+      ^result
+   ]
+
+   setChar: aChar andCount: aCount [
+      char := aChar.
+      count := aCount.
    ]
 
    <= other [
-         count = other count
-         ifTrue: [^ char <= other char]
-         ifFalse: [^ count <= other count].
+      ^ (count < other count)
+      | ((count = other count) & (char <= other char))
+   ]
+
+   printBase: aStream [
+      ^ aStream << self class << '(' << char << ',' << count
    ]
 
    printOn: aStream [
-      ^ aStream << char asCharacter visible<< '     '<<count .
+      (self printBase: aStream) << ')'.
    ]
+
+   inorder: visitor prefix: string [
+      visitor value: char value: string.
+   ]
+
 ]
+
+
+Leaf subclass: Tree [
+   |left right|
+
+   Tree class >> new: aChar count: aCount [
+      self shouldNotImplement
+   ]
+
+   Tree class >> new: aChar count: aCount left: aLeft right: aRight [
+      |result|
+      result := super new: aChar count: aCount.
+      result setLeft: aLeft andRight: aRight.
+      ^ result
+   ]
+
+   setLeft: aLeft andRight: aRight [
+      left := aLeft.
+      right := aRight.
+   ]
+
+   printOn: aStream [
+      (self printBase: aStream) << ',' << left << ',' << right << ')'.
+   ]
+
+   inorder: visitor prefix: string [
+      left inorder: visitor prefix: string, '0'.
+      right inorder: visitor prefix: string, '1'.
+   ]
+
+]
+
 
 "main function"
 
 "var to hold pipline for input stream"
-|infile|
+|infile decodingTreeFlag|
 
 "parse the options and filename"Smalltalk arguments: '-d -t -c -u'
 do: [:opt :arg |
-   "'option: ' display.
-   opt display."
+  
    
    (opt = $d) ifTrue: [
-   ' -d' display.
-   ' ' display.].
+   stdout <<'-d option is set'<<nl.
+    ].
+    
    (opt = $t) ifTrue: [
-   ' -t' display.
-   ' ' display.].
+   decodingTreeFlag := 1.
+   stdout <<'-t option is set'<<nl.
+    ].
 
   (opt = $c) ifTrue: [
-   ' -c' display.
-   ' ' display.].
+   stdout <<'-c option is set'<<nl.
+   ].
 
   (opt = $u) ifTrue: [
-   ' -u' display.
-   ' ' display.].
+   stdout <<'-u option is set'<<nl.
+   ].
   
   (arg ~= nil) ifTrue: [
    "'filename: ' display.
@@ -160,16 +202,55 @@ do: [:opt :arg |
    freqtable incr: ordChar.
 ].
 
-infile close.
+
 
 
 freqtable keysAndValuesDo: [:key :count |
    (count notNil and: [count > 0]) ifTrue: [
-      pqueue add: (Node new: count char: key).
+      queue add: (Leaf new: key count: count).
       stdout <<  key asCharacter visible << '     ' << count
              << nl.
    ]
 ].
-stdout <<'output from sortedCollection'<< nl.
 
-pqueue do: [:item| stdout << item << nl.].
+"stdout <<'output from sortedCollection'<< nl.
+queue do: [:item| stdout << item << nl.]."
+
+
+
+"stdout << nl << '----bulid tree-----' << nl."
+[queue notEmpty] whileTrue: [
+   |leftchild rightchild|
+   
+   leftchild := queue removeFirst.
+
+   
+   (queue notEmpty) ifTrue: [
+                      rightchild := queue removeFirst.
+              
+                      newtree := ( Tree new: 0 
+                        count: (leftchild count) +  (rightchild count)
+                        left: leftchild right: rightchild).
+                
+                      queue add: newtree.
+                      
+                      "stdout << newtree << nl."]
+                   
+                    ifFalse:[
+                      decodingtree:=leftchild.
+                      "stdout << leftchild << nl."
+                      ].
+].
+
+decodingTreeFlag = 1 ifTrue:[
+     stdout << '-----------decoding tree--------------' << nl.
+     stdout << decodingtree << nl.].
+
+stdout << nl << 'encode' << nl.
+decodingtree inorder: [:char :string |
+   stdout <<  char asCharacter visible<< '    ' << string << nl.
+] prefix: ''.
+
+
+
+infile close.
