@@ -160,7 +160,7 @@ Leaf subclass: Tree [
 "main function"
 
 "var to hold pipline for input stream"
-|infile decodingTreeFlag outfilename argcount|
+|infile outfile decodingTreeFlag outfilename argcount|
 
 argcount:=0.
 
@@ -187,13 +187,15 @@ do: [:opt :arg |
   
   (arg ~= nil) ifTrue: [
     
-     argcount = 0 ifTrue:[
-        stdout <<'input filename: ' << arg <<nl.
-        infile := FileStream open: arg
-                         mode: FileStream read.]
-                ifFalse:[
-                stdout <<'output filename: ' << arg <<nl.
-                ].
+     argcount = 0 
+        ifTrue:[
+          stdout <<'input filename: ' << arg <<nl.
+          infile := FileStream open: arg
+                    mode: FileStream read.]
+        ifFalse:[
+           stdout <<'output filename: ' << arg <<nl.
+            outfile := FileStream open: arg
+                       mode: FileStream write.].
   
      argcount := argcount + 1.
    ].
@@ -216,13 +218,18 @@ Smalltalk arguments size = 0
    freqtable incr: ordChar.
 ].
 
+"stdout <<  'freqtable at:256  '<<(freqtable at: 256)<< nl.
+"
 freqtable keysAndValuesDo: [:key :count |
    (count notNil and: [count > 0]) ifTrue: [
       queue add: (Leaf new: key count: count).
-      "stdout <<  key asCharacter visible << '     ' << count
-             << nl."
+      stdout <<  key "asCharacter visible" << '     ' << count
+             << nl.
    ]
 ].
+
+
+
 
 "stdout <<'output from sortedCollection'<< nl.
 queue do: [:item| stdout << item << nl.]."
@@ -233,7 +240,6 @@ queue do: [:item| stdout << item << nl.]."
    
    leftchild := queue removeFirst.
 
-   
    (queue notEmpty) ifTrue: [
                       rightchild := queue removeFirst.
               
@@ -251,9 +257,6 @@ queue do: [:item| stdout << item << nl.]."
                       ].
 ].
 
-decodingTreeFlag = 1 ifTrue:[
-     stdout << '------------decoding tree--------------' << nl.
-     stdout << decodingtree << nl.].
 
 "stdout << nl << 'encode' << nl."
 decodingtree inorder: [:char :string |
@@ -262,15 +265,19 @@ decodingtree inorder: [:char :string |
                <<'        ' << string << nl."
 ] prefix: ''.
 
-stdout << nl << '------------output---------------------' << nl.
+"decoding tree and table is printed to stdout"
+decodingTreeFlag = 1 ifTrue:[
+     stdout <<nl<< '------------decoding tree--------------' << nl.
+     stdout << decodingtree << nl.
 
-outputtable keysAndValuesDo: [:key :count |
-   (count notNil and: [count > 0]) ifTrue: [
-      stdout <<  key asCharacter visible << '     '
-             << (freqtable at: key) <<'    '<<count
-             << nl.
-   ]
+     stdout <<nl<< '------------encoding table-------------' << nl.
+     outputtable keysAndValuesDo: [:key :count |
+     (count notNil and: [count > 0]) ifTrue: [
+        stdout <<  key asCharacter visible << '     '
+               << (freqtable at: key) <<'    '<<count
+               << nl.
+     ]
+    ].
 ].
-
 
 infile close.
