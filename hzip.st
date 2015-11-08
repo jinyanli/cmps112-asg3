@@ -32,9 +32,12 @@ Character extend [
         "stdout << (self asInteger)."
       self isPrint ifTrue: [^' ', self asString, ' ']             
                    ifFalse: [ self digits
-                      ifTrue:[
-                           ^ 'x', ((self asInteger printStringRadix: 16) copyFrom: 4 to: 5)]
-                      ifFalse:[^ 'x0', ((self asInteger printStringRadix: 16) copyFrom: 4 to: 4)]
+                      ifTrue:[((self asInteger) >= 255) ifTrue:[ ^ 'EOF']ifFalse:[
+                           ^ 'x', ((self asInteger printStringRadix: 16) copyFrom: 4 )]
+                             ]
+                      ifFalse:[
+                             
+                             ^ 'x0', ((self asInteger printStringRadix: 16) copyFrom: 4)]
                      ]           
    ]
 ]
@@ -82,8 +85,10 @@ Object subclass: ZeroArray [
    ]
 ]
 
-freqtable := ZeroArray new: 256.
-outputtable := ZeroArray new: 256.
+freqtable := ZeroArray new: 257.
+outputtable := ZeroArray new: 257.
+freqtable at:256 put:1.
+outputtable at:256 put:1.
 
 Object subclass: Leaf [
    |char count|
