@@ -32,7 +32,7 @@ Character extend [
         "stdout << (self asInteger)."
       self isPrint ifTrue: [^' ', self asString, ' ']             
                    ifFalse: [ self digits
-                      ifTrue:[((self asInteger) >= 255) ifTrue:[ ^ 'EOF']ifFalse:[
+                      ifTrue:[((self asInteger) = 256) ifTrue:[ ^ 'EOF']ifFalse:[
                            ^ 'x', ((self asInteger printStringRadix: 16) copyFrom: 4 )]
                              ]
                       ifFalse:[
@@ -86,10 +86,13 @@ Object subclass: ZeroArray [
 ]
 
 freqtable := ZeroArray new: 257.
-outputtable := ZeroArray new: 257.
+encodetable := ZeroArray new: 257.
 freqtable at:256 put:1.
-outputtable at:256 put:1.
-
+encodetable at:256 put:1.
+"
+freqtable := ZeroArray new: 256.
+encodetable := ZeroArray new: 256.
+"
 Object subclass: Leaf [
    |char count|
    char [ ^ char ]
@@ -162,10 +165,48 @@ Leaf subclass: Tree [
 ]
 
 
+Object subclass: OutBits [
+   |bitIndex currentByte myStream|
+   OutBits class >> new [
+      self shouldNotImplement.
+   ]
+   OutBits class >> new: fileStream [
+      |result|
+      result := super new.
+      result init: fileStream.
+      ^result
+   ]
+   clearByte [
+      bitIndex := 8.
+      currentByte := 0.
+   ]
+   init: fileStream [
+      myStream := fileStream.
+      self clearByte.
+   ]
+   flushByte [
+
+      currentByte = 8 ifFalse: [
+         stdout <<'flushByte: '<< currentByte asCharacter<<Character nl.
+         myStream nextPutByte: currentByte.
+         self clearByte.
+      ]
+   ]
+   writeBit: bit [
+      currentByte := currentByte bitAt: bitIndex put: bit.
+      "stdout <<'writeBit: '<< currentByte<<Character nl."
+      bitIndex := bitIndex - 1.
+      bitIndex = 0 ifTrue: [
+       "stdout <<'writeBit: flushByte' <<Character nl."
+        self flushByte].
+   ]
+]
+
+
 "main function"
 
 "var to hold pipline for input stream"
-|infile outfile decodingTreeFlag outfilename argcount|
+|infile infile2 outfile decodingTreeFlag outfilename argcount|
 
 argcount:=0.
 
@@ -196,6 +237,8 @@ do: [:opt :arg |
         ifTrue:[
           stdout <<'input filename: ' << arg <<nl.
           infile := FileStream open: arg
+                    mode: FileStream read.
+          infile2 := FileStream open: arg
                     mode: FileStream read.]
         ifFalse:[
            stdout <<'output filename: ' << arg <<nl.
@@ -228,8 +271,8 @@ Smalltalk arguments size = 0
 freqtable keysAndValuesDo: [:key :count |
    (count notNil and: [count > 0]) ifTrue: [
       queue add: (Leaf new: key count: count).
-      stdout <<  key "asCharacter visible" << '     ' << count
-             << nl.
+      "stdout <<  key asCharacter visible << '     ' << count
+             << nl."
    ]
 ].
 
@@ -265,7 +308,7 @@ queue do: [:item| stdout << item << nl.]."
 
 "stdout << nl << 'encode' << nl."
 decodingtree inorder: [:char :string |
-   outputtable at: char put: string.
+   encodetable at: char put: string.
    "stdout <<  char asCharacter visible<<'    '<< (freqtable at: char) 
                <<'        ' << string << nl."
 ] prefix: ''.
@@ -276,7 +319,7 @@ decodingTreeFlag = 1 ifTrue:[
      stdout << decodingtree << nl.
 
      stdout <<nl<< '------------encoding table-------------' << nl.
-     outputtable keysAndValuesDo: [:key :count |
+     encodetable keysAndValuesDo: [:key :count |
      (count notNil and: [count > 0]) ifTrue: [
         stdout <<  key asCharacter visible << '     '
                << (freqtable at: key) <<'    '<<count
@@ -285,4 +328,12 @@ decodingTreeFlag = 1 ifTrue:[
     ].
 ].
 
+stdout << '----------encoded input----------' << nl.
+[infile2 atEnd not] whileTrue: [
+   |ordChar2|
+   ordChar2 := infile2 next asInteger.
+   stdout << (encodetable at: ordChar2).
+].
+
+stdout<<nl.
 infile close.
