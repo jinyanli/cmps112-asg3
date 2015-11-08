@@ -160,7 +160,9 @@ Leaf subclass: Tree [
 "main function"
 
 "var to hold pipline for input stream"
-|infile decodingTreeFlag|
+|infile decodingTreeFlag outfilename argcount|
+
+argcount:=0.
 
 "parse the options and filename"Smalltalk arguments: '-d -t -c -u'
 do: [:opt :arg |
@@ -184,16 +186,29 @@ do: [:opt :arg |
    ].
   
   (arg ~= nil) ifTrue: [
-   "'filename: ' display.
-   arg display."
-   
-   infile := FileStream open: arg
-                        mode: FileStream read.
-   "infile catFile.
-   infile close."
+    
+     argcount = 0 ifTrue:[
+        stdout <<'input filename: ' << arg <<nl.
+        infile := FileStream open: arg
+                         mode: FileStream read.]
+                ifFalse:[
+                stdout <<'output filename: ' << arg <<nl.
+                ].
+  
+     argcount := argcount + 1.
    ].
 ].
 
+"
+Smalltalk arguments size = 0 
+   ifTrue: [stdout <<'require input file'<<nl.]
+   ifFalse:[
+        stdout <<'input filename: ' << (Smalltalk arguments at: 1) <<nl.
+        infile := FileStream open: (Smalltalk arguments at: 1)
+                              mode: FileStream read.
+        stdout <<'output filename: ' << (Smalltalk arguments at: 2) <<nl.
+    ].
+"
 
 [infile atEnd not] whileTrue: [
    |ordChar|
