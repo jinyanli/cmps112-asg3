@@ -153,6 +153,9 @@ Leaf subclass: Tree [
       right := aRight.
    ]
 
+   left  [ ^ left]
+   right [ ^ right]
+
    printOn: aStream [
       (self printBase: aStream) << ',' << left << ',' << right << ')'.
    ]
@@ -185,19 +188,14 @@ Object subclass: OutBits [
       self clearByte.
    ]
    flushByte [
-
-      currentByte = 8 ifFalse: [
-         stdout <<'flushByte: '<< currentByte asCharacter<<Character nl.
          myStream nextPutByte: currentByte.
          self clearByte.
-      ]
+
    ]
    writeBit: bit [
       currentByte := currentByte bitAt: bitIndex put: bit.
-      "stdout <<'writeBit: '<< currentByte<<Character nl."
       bitIndex := bitIndex - 1.
       bitIndex = 0 ifTrue: [
-       "stdout <<'writeBit: flushByte' <<Character nl."
         self flushByte].
    ]
 ]
@@ -206,7 +204,12 @@ Object subclass: OutBits [
 "main function"
 
 "var to hold pipline for input stream"
-|infile infile2 outfile decodingTreeFlag outfilename argcount|
+|infile infile2 outfile outfilename argcount|
+
+dFlag := false.
+cFlag := false.
+tFlag := false.
+uFlag := false.
 
 argcount:=0.
 
@@ -219,11 +222,12 @@ do: [:opt :arg |
     ].
     
    (opt = $t) ifTrue: [
-   decodingTreeFlag := 1.
+   tFlag := true.
    stdout <<'-t option is set'<<nl.
     ].
 
   (opt = $c) ifTrue: [
+   cFlag := true.
    stdout <<'-c option is set'<<nl.
    ].
 
@@ -249,17 +253,8 @@ do: [:opt :arg |
    ].
 ].
 
-"
-Smalltalk arguments size = 0 
-   ifTrue: [stdout <<'require input file'<<nl.]
-   ifFalse:[
-        stdout <<'input filename: ' << (Smalltalk arguments at: 1) <<nl.
-        infile := FileStream open: (Smalltalk arguments at: 1)
-                              mode: FileStream read.
-        stdout <<'output filename: ' << (Smalltalk arguments at: 2) <<nl.
-    ].
-"
 
+"build frequency table"
 [infile atEnd not] whileTrue: [
    |ordChar|
    ordChar := infile next asInteger.
@@ -276,45 +271,32 @@ freqtable keysAndValuesDo: [:key :count |
    ]
 ].
 
-
-
-
 "stdout <<'output from sortedCollection'<< nl.
 queue do: [:item| stdout << item << nl.]."
 
 "stdout << nl << '----bulid tree-----' << nl."
-[queue notEmpty] whileTrue: [
+[queue size >1 ] whileTrue: [
    |leftchild rightchild|
    
    leftchild := queue removeFirst.
-
-   (queue notEmpty) ifTrue: [
-                      rightchild := queue removeFirst.
-              
-                      newtree := ( Tree new: 0 
-                        count: (leftchild count) +  (rightchild count)
-                        left: leftchild right: rightchild).
-                
-                      queue add: newtree.
-                      
-                      "stdout << newtree << nl."]
-                   
-                    ifFalse:[
-                      decodingtree:=leftchild.
-                      "stdout << leftchild << nl."
-                      ].
+   rightchild := queue removeFirst.
+   newtree := ( Tree new: -1
+                      count: (leftchild count) +  (rightchild count)
+                      left: leftchild right: rightchild).
+   queue add: newtree.
 ].
+decodingtree:=queue removeFirst.
 
-
-"stdout << nl << 'encode' << nl."
+"stdout << nl << 'build encode table' << nl."
 decodingtree inorder: [:char :string |
    encodetable at: char put: string.
    "stdout <<  char asCharacter visible<<'    '<< (freqtable at: char) 
                <<'        ' << string << nl."
 ] prefix: ''.
 
+
 "decoding tree and table is printed to stdout"
-decodingTreeFlag = 1 ifTrue:[
+tFlag ifTrue:[
      stdout <<nl<< '------------decoding tree--------------' << nl.
      stdout << decodingtree << nl.
 
@@ -328,12 +310,40 @@ decodingTreeFlag = 1 ifTrue:[
     ].
 ].
 
-stdout << '----------encoded input----------' << nl.
-[infile2 atEnd not] whileTrue: [
-   |ordChar2|
-   ordChar2 := infile2 next asInteger.
-   stdout << (encodetable at: ordChar2).
-].
+stdout <<nl<< '----------encoded input in binary----------' << nl.
+|outBytes|
+outBytes := OutBits new: outfile.
+(cFlag & outfile~=nil) ifTrue:[ 
+ stdout <<nl<< 'cFlag =true' << nl.
+   
+   [infile2 atEnd not] whileTrue: [
+      |ordChar2|
+       ordChar2 := infile2 next asInteger.
+       code:= (encodetable at: ordChar2). 
+       1 to: (code size) by: 1 do: [:index |
+         bit:= ((code at: index) asInteger) - 48.
+         outBytes writeBit: bit.
+         "stdout <<bit."].
+       ].
+
+   eof:= (encodetable at: 256).
+   1 to: (eof size) by: 1 do: [:index |
+         bit:= ((eof at: index) asInteger) - 48.
+         outBytes writeBit: bit.].     
+   outBytes flushByte.
+   
+]
+ ifFalse:[
+   stdout <<nl<< 'cFlag =false' << nl.
+        [infile2 atEnd not] whileTrue: [
+           |ordChar2|
+           ordChar2 := infile2 next asInteger.
+           code:= (encodetable at: ordChar2).
+           stdout <<code. 
+        ].
+      eof:= (encodetable at: 256).
+      stdout<<eof.
+].   
 
 stdout<<nl.
 infile close.
