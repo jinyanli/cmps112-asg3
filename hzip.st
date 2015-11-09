@@ -306,16 +306,20 @@ tFlag ifTrue:[
         stdout <<  key asCharacter visible << '     '
                << (freqtable at: key) <<'    '<<count
                << nl.
-     ]
+     ].
     ].
 ].
 
-stdout <<nl<< '----------encoded input in binary----------' << nl.
-|outBytes|
-outBytes := OutBits new: outfile.
-(cFlag & outfile~=nil) ifTrue:[ 
- stdout <<nl<< 'cFlag =true' << nl.
-   
+
+
+
+cFlag  ifTrue:[ 
+
+outfile~=nil ifTrue:[
+    stdout <<nl<< 'cFlag= '<<cFlag 
+          <<' have output file'<< nl.
+
+    outBytes := OutBits new: outfile.
    [infile2 atEnd not] whileTrue: [
       |ordChar2|
        ordChar2 := infile2 next asInteger.
@@ -331,10 +335,11 @@ outBytes := OutBits new: outfile.
          bit:= ((eof at: index) asInteger) - 48.
          outBytes writeBit: bit.].     
    outBytes flushByte.
-   
-]
- ifFalse:[
-   stdout <<nl<< 'cFlag =false' << nl.
+]ifFalse:[
+   stdout <<nl<< 'cFlag ='<<cFlag
+              <<' no output file'<< nl.
+          
+   stdout <<nl<< '----------encoded input in binary----------' << nl.
         [infile2 atEnd not] whileTrue: [
            |ordChar2|
            ordChar2 := infile2 next asInteger.
@@ -343,7 +348,9 @@ outBytes := OutBits new: outfile.
         ].
       eof:= (encodetable at: 256).
       stdout<<eof.
-].   
+  ].    
+].
+  
 
 stdout<<nl.
 infile close.
