@@ -427,16 +427,62 @@ ifFalse:[
  ].
 ].
 
-uFlag ifTrue:[
-   stack:=OrderedCollection new.
+
+stdout<<nl<<'debug flag'<<nl.
+(uFlag) ifTrue:[
+   stdout<<' decompression is set'<<nl.
+
+   stack := OrderedCollection new.
    fileBits := BitStream new: infile.
- 
+   treebuilt:=false.
+
    [fileBits atEnd not] whileTrue: [
-       stdout<<fileBits nextBit.
+       
+     treenode:=fileBits nextBit.
+     leafchar:=0.
+ 
+     treebuilt ifFalse:[
+        treenode=0 ifTrue:[
+
+           8 to:1 by:-1 do:[:i|
+              bit:=fileBits nextBit.
+              "stdout<<bit."
+            leafchar:=leafchar bitAt:i put:bit.                        
+           ].
+
+           leafchar=0 ifTrue:[
+             specialbit:=fileBits nextBit.
+             specialbit=1 ifTrue:[
+              leafchar:=leafchar bitAt:9 put:1.
+             ].
+           ].
+          "stdout<<leafchar<<nl."
+          stack add: (Leaf new: leafchar count: '');inspect.
+
         ].
 
+        treenode=1 ifTrue:[
+           stdout<<'interior node: 1'<<nl.
+       
+           stack size>1 ifTrue:[
+           rightchild:=stack removeLast.
+           leftchild:=stack removeLast.
+           
+           newtree := (Tree new: 'node'
+                      count: ''
+                      left: leftchild right: rightchild).
+             stack add: newtree;inspect.
+           ] ifFalse:[
+             treebuilt:=true.
+             stdout<<'reconstructed decoding tree'<<nl
+           ].
+        ].
+     ]
+     ifTrue:[
+    
 
- stdout<<nl<<'output file: '<<outfile<<nl.
+     ].
+   ].
 
 ].  
 
