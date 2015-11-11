@@ -130,7 +130,10 @@ Object subclass: Leaf [
    inorder: visitor prefix: string [
       visitor value: char value: string.
    ]
-
+   
+   postorder: visitor [
+      visitor value: char.
+   ]
 ]
 
 
@@ -164,7 +167,12 @@ Leaf subclass: Tree [
       left inorder: visitor prefix: string, '0'.
       right inorder: visitor prefix: string, '1'.
    ]
-
+   
+   postorder: visitor[      
+      left postorder: visitor .
+      right postorder: visitor .  
+      visitor value: char.
+   ]
 ]
 
 
@@ -294,11 +302,30 @@ decodingtree inorder: [:char :string |
                <<'        ' << string << nl."
 ] prefix: ''.
 
-
+binarytree:=''.
 "decoding tree and table is printed to stdout"
 tFlag ifTrue:[
      stdout <<nl<< '------------decoding tree--------------' << nl.
-     stdout << decodingtree << nl.
+     stdout << decodingtree << nl<<nl.
+
+   decodingtree postorder: [:char |
+    (char =-1) ifTrue:[binarytree:=binarytree,'[1]'.]
+                ifFalse:[
+                   bin:=''.
+                   char = 256
+                        ifTrue:[bin:='{000000001}']
+                        ifFalse:[
+                           char=0 ifTrue:[bin:='<000000000>']
+                                  ifFalse:[
+                                     8 to:1 by: -1 do:[:i|
+                                     bin:=bin,((char bitAt:i) printString).
+                                   ]
+                        ].               
+                 ].
+                 binarytree:=(binarytree,'[0]','(',bin,')').
+              ].
+   ].
+   stdout <<'binary decoding tree: '<<nl<<binarytree << nl.
 
      stdout <<nl<< '------------encoding table-------------' << nl.
      encodetable keysAndValuesDo: [:key :count |
