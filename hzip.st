@@ -212,11 +212,35 @@ Object subclass: OutBits [
    ]
 ]
 
+Object subclass: BitStream [
+   |bitIndex byte myStream|
+   BitStream class >> new: fileStream [
+      |result|
+      result := super new.
+      result init: fileStream.
+      ^result
+   ]
+   init: fileStream [
+      myStream := fileStream.
+      bitIndex := 1.
+   ]
+   nextBit [
+      bitIndex = 1 ifTrue: [
+         byte := myStream next.
+         bitIndex := 9.
+      ].
+      bitIndex := bitIndex - 1.
+      ^byte value bitAt: bitIndex
+   ]
+   atEnd [
+      ^bitIndex = 1 and: [myStream atEnd]
+   ]
+]
 
 "main function"
 
 "var to hold pipline for input stream"
-|infile infile2 outfile outfilename argcount|
+|infile infile2 outfile dcpfile outfilename argcount|
 
 dFlag := false.
 cFlag := false.
@@ -244,6 +268,7 @@ do: [:opt :arg |
    ].
 
   (opt = $u) ifTrue: [
+    uFlag := true.
    stdout <<'-u option is set'<<nl.
    ].
   
@@ -255,7 +280,8 @@ do: [:opt :arg |
           infile := FileStream open: arg
                     mode: FileStream read.
           infile2 := FileStream open: arg
-                    mode: FileStream read.]
+                    mode: FileStream read.
+         ]
         ifFalse:[
            stdout <<'output filename: ' << arg <<nl.
             outfile := FileStream open: arg
@@ -265,6 +291,7 @@ do: [:opt :arg |
    ].
 ].
 
+uFlag ifFalse:[
 
 "build frequency table"
 [infile atEnd not] whileTrue: [
@@ -309,6 +336,7 @@ decodingtree inorder: [:char :string |
 "convert decoding tree in binary"
 binarytree:=''.
 decodingtree postorder: [:char :isleaf |
+
    isleaf  ifFalse:[binarytree:=binarytree,'1'.]
                 ifTrue:[
                    bin:=''.
@@ -343,8 +371,7 @@ tFlag ifTrue:[
 ].
 
 
-
-
+"perform compression"
 cFlag  ifTrue:[ 
 
 outfile~=nil ifTrue:[
@@ -374,7 +401,8 @@ outfile~=nil ifTrue:[
          bit:= ((eof at: index) asInteger) - 48.
          outBytes writeBit: bit.].     
    outBytes flushByte.
-]ifFalse:[
+]
+ifFalse:[
    stdout <<nl<< 'cFlag ='<<cFlag
               <<' no output file'<< nl.
           
@@ -388,9 +416,22 @@ outfile~=nil ifTrue:[
         ].
       eof:= (encodetable at: 256).
       stdout<<eof.
-  ].    
+   ].    
+ ].
 ].
-  
+
+uFlag ifTrue:[
+  fileBits := BitStream new: infile.
+ 
+ [fileBits atEnd not] whileTrue: [
+       stdout<<fileBits nextBit.
+        ].
+
+
+"  stdout<<outfile<<nl."
+
+].  
 
 stdout<<nl.
 infile close.
+
