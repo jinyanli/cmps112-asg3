@@ -88,7 +88,7 @@ Object subclass: ZeroArray [
 freqtable := ZeroArray new: 257.
 encodetable := ZeroArray new: 257.
 freqtable at:256 put:1.
-encodetable at:256 put:1.
+
 "
 freqtable := ZeroArray new: 256.
 encodetable := ZeroArray new: 256.
@@ -385,6 +385,10 @@ outfile~=nil ifTrue:[
          outBytes writeBit: bit.
          ].
 
+   "add at the end 1 bit for checking 
+      whether the tree is completed"  
+   outBytes writeBit: 1.
+
    "output encoded data" 
    [infile2 atEnd not] whileTrue: [
       |ordChar2|
@@ -403,11 +407,14 @@ outfile~=nil ifTrue:[
    outBytes flushByte.
 ]
 ifFalse:[
-   stdout <<nl<< 'cFlag ='<<cFlag
-              <<' no output file'<< nl.
-          
+   stdout <<nl<< 'cFlag = '<<cFlag
+              <<' without output file'<< nl.
+    
    stdout <<nl<< '----------encoded input in binary----------' << nl.
-   stdout <<binarytree.   
+    "add at the end 1 bit for checking 
+      whether the tree is completed"
+   stdout <<binarytree<<1.      
+    
      [infile2 atEnd not] whileTrue: [
            |ordChar2|
            ordChar2 := infile2 next asInteger.
@@ -421,14 +428,15 @@ ifFalse:[
 ].
 
 uFlag ifTrue:[
-  fileBits := BitStream new: infile.
+   stack:=OrderedCollection new.
+   fileBits := BitStream new: infile.
  
- [fileBits atEnd not] whileTrue: [
+   [fileBits atEnd not] whileTrue: [
        stdout<<fileBits nextBit.
         ].
 
 
-"  stdout<<outfile<<nl."
+ stdout<<nl<<'output file: '<<outfile<<nl.
 
 ].  
 
