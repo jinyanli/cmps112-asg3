@@ -514,7 +514,8 @@ stdout<<nl<<'debug flag'<<nl.
 
                     ] ifFalse:[
 
-                     stdout<<(node char) asCharacter.  
+                     outfile=nil ifTrue:[
+                     stdout<<(node char) asCharacter.].   
 
                      8 to: 1 by: -1 do: [:index |
                         bit:= (node char) bitAt: index.
@@ -537,8 +538,9 @@ stdout<<nl<<'debug flag'<<nl.
 
                     ] ifFalse:[
 
-                     stdout<<(node char) asCharacter.  
-
+                     outfile=nil ifTrue:[
+                     stdout<<(node char) asCharacter.].  
+                
                      8 to: 1 by: -1 do: [:index |
                         bit:= (node char) bitAt: index.
                         outBytes writeBit: bit.
@@ -553,8 +555,6 @@ stdout<<nl<<'debug flag'<<nl.
        ].
      ].
    ].
-
-stdout<<nl<<'debug flag'<<nl.
 ].  
 
 stdout<<nl.
