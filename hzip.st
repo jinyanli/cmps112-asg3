@@ -435,13 +435,17 @@ stdout<<nl<<'debug flag'<<nl.
    stack := OrderedCollection new.
    fileBits := BitStream new: infile.
    treebuilt:=false.
+   reconstructedTree:=''.
+   node:=''.   
 
    [fileBits atEnd not] whileTrue: [
        
      treenode:=fileBits nextBit.
      leafchar:=0.
+
  
      treebuilt ifFalse:[
+        "treenode:=abit."
         treenode=0 ifTrue:[
 
            8 to:1 by:-1 do:[:i|
@@ -468,19 +472,49 @@ stdout<<nl<<'debug flag'<<nl.
            rightchild:=stack removeLast.
            leftchild:=stack removeLast.
            
-           newtree := (Tree new: 'node'
+           newtree := (Tree new: -1
                       count: ''
                       left: leftchild right: rightchild).
              stack add: newtree;inspect.
            ] ifFalse:[
              treebuilt:=true.
-             stdout<<'reconstructed decoding tree'<<nl
+             stdout<<'-------------'
+                   <<'reconstructed decoding tree'<<
+                     '-------------'<<nl.
+             reconstructedTree:=stack removeLast.
+             node:=reconstructedTree.
+            stdout<<reconstructedTree<<nl<<nl.
+ 
            ].
         ].
      ]
      ifTrue:[
-    
+        
+       node isleaf ifTrue:[
+                
+                stdout<<(node char) asCharacter.
+                node:=reconstructedTree.
+               ]ifFalse:[
+        treenode=0 ifTrue:[
+                
+                node:=node left.
 
+                node isleaf ifTrue:[
+                
+                stdout<<(node char) asCharacter.
+                node:=reconstructedTree.
+               ]
+           ] ifFalse:[
+               
+               node:=node right.
+
+               node isleaf ifTrue:[
+                
+                stdout<<(node char) asCharacter.   
+                node:=reconstructedTree.
+               ]
+           ].
+       ].
      ].
    ].
 
