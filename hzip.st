@@ -241,7 +241,6 @@ Object subclass: BitStream [
 
 "var to hold pipline for input stream"
 |infile infile2 outfile dcpfile outfilename argcount|
-
 dFlag := false.
 cFlag := false.
 tFlag := false.
@@ -249,9 +248,9 @@ uFlag := false.
 
 argcount:=0.
 
+
 "parse the options and filename"Smalltalk arguments: '-d -t -c -u'
 do: [:opt :arg |
-  
    
    (opt = $d) ifTrue: [
    stdout <<'-d option is set'<<nl.
@@ -291,7 +290,9 @@ do: [:opt :arg |
    ].
 ].
 
+
 uFlag ifFalse:[
+
 
 "build frequency table"
 [infile atEnd not] whileTrue: [
@@ -428,22 +429,25 @@ ifFalse:[
 ].
 
 
+
 stdout<<nl<<'debug flag'<<nl.
 (uFlag) ifTrue:[
-   stdout<<' decompression is set'<<nl.
-
+   |iseof outBytes stack|
+   iseof:=false.
+   stdout<<'decompression is set'<<nl.
+   outBytes := OutBits new: outfile.  
    stack := OrderedCollection new.
    fileBits := BitStream new: infile.
    treebuilt:=false.
    reconstructedTree:=''.
    node:=''.   
+   
+"
+   [(fileBits atEnd not) & (iseof not)] whileTrue: [
 
-   [fileBits atEnd not] whileTrue: [
-       
      treenode:=fileBits nextBit.
      leafchar:=0.
 
- 
      treebuilt ifFalse:[
         "treenode:=abit."
         treenode=0 ifTrue:[
@@ -461,12 +465,12 @@ stdout<<nl<<'debug flag'<<nl.
              ].
            ].
           "stdout<<leafchar<<nl."
-          stack add: (Leaf new: leafchar count: '');inspect.
+          stack add: (Leaf new: leafchar count: '').
 
         ].
 
         treenode=1 ifTrue:[
-           stdout<<'interior node: 1'<<nl.
+           "stdout<<'interior node: 1'<<nl."
        
            stack size>1 ifTrue:[
            rightchild:=stack removeLast.
@@ -475,7 +479,7 @@ stdout<<nl<<'debug flag'<<nl.
            newtree := (Tree new: -1
                       count: ''
                       left: leftchild right: rightchild).
-             stack add: newtree;inspect.
+             stack add: newtree.
            ] ifFalse:[
              treebuilt:=true.
              stdout<<'-------------'
@@ -484,6 +488,9 @@ stdout<<nl<<'debug flag'<<nl.
              reconstructedTree:=stack removeLast.
              node:=reconstructedTree.
             stdout<<reconstructedTree<<nl<<nl.
+ 
+            stdout<<nl<<
+                '---------decoded output-----------'<<nl<<nl.
  
            ].
         ].
@@ -500,24 +507,38 @@ stdout<<nl<<'debug flag'<<nl.
                 node:=node left.
 
                 node isleaf ifTrue:[
-                
-                stdout<<(node char) asCharacter.
-                node:=reconstructedTree.
+                iseof not ifTrue:[  
+                    ((node char)=256) ifTrue:[
+                    iseof:=true.
+
+
+                    ] ifFalse:[
+                     stdout<<(node char) asCharacter.  
+                     node:=reconstructedTree.
+                    ].
+                ].
                ]
            ] ifFalse:[
                
                node:=node right.
 
                node isleaf ifTrue:[
-                
-                stdout<<(node char) asCharacter.   
-                node:=reconstructedTree.
+                iseof not ifTrue:[
+                    ((node char)=256) ifTrue:[
+                    iseof:=true.
+
+                    ] ifFalse:[
+                     stdout<<(node char) asCharacter.  
+                    node:=reconstructedTree.
+                    ].
+                ].
                ]
            ].
        ].
      ].
    ].
-
+"
+stdout<<nl<<'debug flag'<<nl.
 ].  
 
 stdout<<nl.
