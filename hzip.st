@@ -398,7 +398,7 @@ outfile~=nil ifTrue:[
        1 to: (code size) by: 1 do: [:index |
          bit:= ((code at: index) asInteger) - 48.
          outBytes writeBit: bit.
-         "stdout <<bit."].
+          ].
        ].
 
    eof:= (encodetable at: 256).
@@ -442,19 +442,19 @@ stdout<<nl<<'debug flag'<<nl.
    reconstructedTree:=''.
    node:=''.   
    
-"
+
    [(fileBits atEnd not) & (iseof not)] whileTrue: [
 
      treenode:=fileBits nextBit.
      leafchar:=0.
 
      treebuilt ifFalse:[
-        "treenode:=abit."
+        
         treenode=0 ifTrue:[
 
            8 to:1 by:-1 do:[:i|
               bit:=fileBits nextBit.
-              "stdout<<bit."
+              
             leafchar:=leafchar bitAt:i put:bit.                        
            ].
 
@@ -464,13 +464,13 @@ stdout<<nl<<'debug flag'<<nl.
               leafchar:=leafchar bitAt:9 put:1.
              ].
            ].
-          "stdout<<leafchar<<nl."
+         
           stack add: (Leaf new: leafchar count: '').
 
         ].
 
         treenode=1 ifTrue:[
-           "stdout<<'interior node: 1'<<nl."
+           
        
            stack size>1 ifTrue:[
            rightchild:=stack removeLast.
@@ -513,8 +513,16 @@ stdout<<nl<<'debug flag'<<nl.
 
 
                     ] ifFalse:[
+
                      stdout<<(node char) asCharacter.  
+
+                     8 to: 1 by: -1 do: [:index |
+                        bit:= (node char) bitAt: index.
+                        outBytes writeBit: bit.
+                     ].
+
                      node:=reconstructedTree.
+
                     ].
                 ].
                ]
@@ -528,8 +536,16 @@ stdout<<nl<<'debug flag'<<nl.
                     iseof:=true.
 
                     ] ifFalse:[
+
                      stdout<<(node char) asCharacter.  
+
+                     8 to: 1 by: -1 do: [:index |
+                        bit:= (node char) bitAt: index.
+                        outBytes writeBit: bit.
+                     ].
+
                     node:=reconstructedTree.
+
                     ].
                 ].
                ]
@@ -537,7 +553,7 @@ stdout<<nl<<'debug flag'<<nl.
        ].
      ].
    ].
-"
+
 stdout<<nl<<'debug flag'<<nl.
 ].  
 
