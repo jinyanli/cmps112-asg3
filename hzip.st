@@ -4,6 +4,7 @@
 execname := '$RCSfile: cmdline.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
 queue := SortedCollection new.
+
 |decodingtree|
 
 FileStream extend [
@@ -32,12 +33,16 @@ Character extend [
         "stdout << (self asInteger)."
       self isPrint ifTrue: [^' ', self asString, ' ']             
                    ifFalse: [ self digits
-                      ifTrue:[((self asInteger) = 256) ifTrue:[ ^ 'EOF']ifFalse:[
-                           ^ 'x', ((self asInteger printStringRadix: 16) copyFrom: 4 )]
+                      ifTrue:[((self asInteger) = 256)
+                              ifTrue:[ ^ 'EOF']ifFalse:[^ 'x',
+                              ((self asInteger printStringRadix: 16)
+                               copyFrom: 4 )]
                              ]
                       ifFalse:[
                              
-                             ^ 'x0', ((self asInteger printStringRadix: 16) copyFrom: 4)]
+                             ^ 'x0',
+                              ((self asInteger printStringRadix: 16)
+                               copyFrom: 4)]
                      ]           
    ]
 ]
@@ -241,6 +246,7 @@ Object subclass: BitStream [
 
 "var to hold pipline for input stream"
 |infile infile2 outfile dcpfile outfilename argcount|
+
 dFlag := false.
 cFlag := false.
 tFlag := false.
@@ -347,7 +353,8 @@ decodingtree postorder: [:char :isleaf |
                            char=0 ifTrue:[bin:='000000000']
                                   ifFalse:[
                                      8 to:1 by: -1 do:[:i|
-                                     bin:=bin,((char bitAt:i) printString).
+                                     bin:=bin,((char bitAt:i)
+                                                       printString).
                                    ]
                         ].               
                  ].
@@ -430,9 +437,8 @@ ifFalse:[
 
 
 
-stdout<<nl<<'debug flag'<<nl.
 (uFlag) ifTrue:[
-   |iseof outBytes stack|
+   |iseof outBytes stack ExitStatus|
    iseof:=false.
    stdout<<'decompression is set'<<nl.
    outBytes := OutBits new: outfile.  
@@ -441,7 +447,7 @@ stdout<<nl<<'debug flag'<<nl.
    treebuilt:=false.
    reconstructedTree:=''.
    node:=''.   
-   
+   ExitStatus:=1.
 
    [(fileBits atEnd not) & (iseof not)] whileTrue: [
 
@@ -487,7 +493,7 @@ stdout<<nl<<'debug flag'<<nl.
                      '-------------'<<nl.
              reconstructedTree:=stack removeLast.
              node:=reconstructedTree.
-            stdout<<reconstructedTree<<nl<<nl.
+            "stdout<<reconstructedTree<<nl<<nl."
  
             stdout<<nl<<
                 '---------decoded output-----------'<<nl<<nl.
@@ -515,13 +521,13 @@ stdout<<nl<<'debug flag'<<nl.
                     ] ifFalse:[
 
                      outfile=nil ifTrue:[
-                     stdout<<(node char) asCharacter.].   
-
-                     8 to: 1 by: -1 do: [:index |
-                        bit:= (node char) bitAt: index.
-                        outBytes writeBit: bit.
+                     stdout<<(node char) asCharacter.]
+                     ifFalse:[
+                        8 to: 1 by: -1 do: [:index |
+                           bit:= (node char) bitAt: index.
+                           outBytes writeBit: bit.
+                        ].
                      ].
-
                      node:=reconstructedTree.
 
                     ].
@@ -539,13 +545,13 @@ stdout<<nl<<'debug flag'<<nl.
                     ] ifFalse:[
 
                      outfile=nil ifTrue:[
-                     stdout<<(node char) asCharacter.].  
-                
-                     8 to: 1 by: -1 do: [:index |
-                        bit:= (node char) bitAt: index.
-                        outBytes writeBit: bit.
+                     stdout<<(node char) asCharacter.]
+                     ifFalse:[
+                        8 to: 1 by: -1 do: [:index |
+                           bit:= (node char) bitAt: index.
+                           outBytes writeBit: bit.
+                        ].
                      ].
-
                     node:=reconstructedTree.
 
                     ].
@@ -557,6 +563,11 @@ stdout<<nl<<'debug flag'<<nl.
    ].
 ].  
 
-stdout<<nl.
+
 infile close.
+outfile~=nil ifTrue:[
+outfile close.
+].
+ExitStatus:=0.
+stdout<<'Exit Status: '<<ExitStatus<<nl.
 
