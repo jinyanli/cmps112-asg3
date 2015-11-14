@@ -5,8 +5,9 @@ execname := '$RCSfile: cmdline.st,v $' =~ '.*: (.*),v.*' at: 1.
 nl := Character nl.
 queue := SortedCollection new.
 
-|decodingtree|
+|decodingtree ExitStatus|
 
+"add helper methods for FileStream class"
 FileStream extend [
    nl := Character nl.
    catFile [
@@ -22,6 +23,7 @@ FileStream extend [
    ]
 ]
 
+"add helper methods for Character class"
 Character extend [
    isPrint [
       ^ (Character space < self) & (self <= $~)
@@ -47,6 +49,7 @@ Character extend [
    ]
 ]
 
+"an zeroArray class to store data"
 Object subclass: ZeroArray [
    |theArray|
 
@@ -94,10 +97,8 @@ freqtable := ZeroArray new: 257.
 encodetable := ZeroArray new: 257.
 freqtable at:256 put:1.
 
-"
-freqtable := ZeroArray new: 256.
-encodetable := ZeroArray new: 256.
-"
+"a leaf data structure to hold character and its
+frequency"
 Object subclass: Leaf [
    |char count isleaf|
    
@@ -144,7 +145,7 @@ Object subclass: Leaf [
    ]
 ]
 
-
+"a tree data structure to hold leaves"
 Leaf subclass: Tree [
    |left right|
 
@@ -184,7 +185,7 @@ Leaf subclass: Tree [
    ]
 ]
 
-
+"a class for writing bits to output file"
 Object subclass: OutBits [
    |bitIndex currentByte myStream|
    OutBits class >> new [
@@ -217,6 +218,7 @@ Object subclass: OutBits [
    ]
 ]
 
+"a class for reading bits from input file"
 Object subclass: BitStream [
    |bitIndex byte myStream|
    BitStream class >> new: fileStream [
@@ -286,6 +288,7 @@ do: [:opt :arg |
                     mode: FileStream read.
           infile2 := FileStream open: arg
                     mode: FileStream read.
+          
          ]
         ifFalse:[
            stdout <<'output filename: ' << arg <<nl.
@@ -436,9 +439,9 @@ ifFalse:[
 ].
 
 
-
+"code for decompression and -u is set"
 (uFlag) ifTrue:[
-   |iseof outBytes stack ExitStatus|
+   |iseof outBytes stack|
    iseof:=false.
    stdout<<'decompression is set'<<nl.
    outBytes := OutBits new: outfile.  
@@ -447,15 +450,17 @@ ifFalse:[
    treebuilt:=false.
    reconstructedTree:=''.
    node:=''.   
-   ExitStatus:=1.
-
+   
+   "read each bit from the input file"
    [(fileBits atEnd not) & (iseof not)] whileTrue: [
 
      treenode:=fileBits nextBit.
      leafchar:=0.
 
+     "if the decoding tree is still constructing"
      treebuilt ifFalse:[
-        
+
+        "convert the input code into a leaf"        
         treenode=0 ifTrue:[
 
            8 to:1 by:-1 do:[:i|
@@ -475,9 +480,9 @@ ifFalse:[
 
         ].
 
+        "build a tree from two leaf" 
         treenode=1 ifTrue:[
-           
-       
+                 
            stack size>1 ifTrue:[
            rightchild:=stack removeLast.
            leftchild:=stack removeLast.
@@ -493,7 +498,7 @@ ifFalse:[
                      '-------------'<<nl.
              reconstructedTree:=stack removeLast.
              node:=reconstructedTree.
-            "stdout<<reconstructedTree<<nl<<nl."
+
  
             stdout<<nl<<
                 '---------decoded output-----------'<<nl<<nl.
@@ -501,7 +506,8 @@ ifFalse:[
            ].
         ].
      ]
-     ifTrue:[
+     ifTrue:["<-- when the tree is reconstructed
+                                   decode the compressed data"
         
        node isleaf ifTrue:[
                 
@@ -569,5 +575,5 @@ outfile~=nil ifTrue:[
 outfile close.
 ].
 ExitStatus:=0.
-stdout<<'Exit Status: '<<ExitStatus<<nl.
+stdout<<nl<<'Exit Status: '<<ExitStatus<<nl.
 
