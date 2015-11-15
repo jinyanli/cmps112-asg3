@@ -7,6 +7,7 @@ queue := SortedCollection new.
 
 |decodingtree ExitStatus|
 
+
 "add helper methods for FileStream class"
 FileStream extend [
    nl := Character nl.
@@ -261,29 +262,33 @@ argcount:=0.
 do: [:opt :arg |
    
    (opt = $d) ifTrue: [
-   stdout <<'-d option is set'<<nl.
+   dFlag := true.
+   "stdout <<'-d option is set'<<nl."
     ].
     
    (opt = $t) ifTrue: [
    tFlag := true.
-   stdout <<'-t option is set'<<nl.
+   "stdout <<'-t option is set'<<nl."
     ].
 
   (opt = $c) ifTrue: [
    cFlag := true.
-   stdout <<'-c option is set'<<nl.
+   "stdout <<'-c option is set'<<nl."
    ].
 
   (opt = $u) ifTrue: [
     uFlag := true.
-   stdout <<'-u option is set'<<nl.
+   "stdout <<'-u option is set'<<nl."
    ].
   
   (arg ~= nil) ifTrue: [
     
      argcount = 0 
         ifTrue:[
-          stdout <<'input filename: ' << arg <<nl.
+
+          dFlag ifTrue:[
+          stdout <<'input filename: ' << arg <<nl.].
+             
           infile := FileStream open: arg
                     mode: FileStream read.
           infile2 := FileStream open: arg
@@ -291,7 +296,8 @@ do: [:opt :arg |
           
          ]
         ifFalse:[
-           stdout <<'output filename: ' << arg <<nl.
+           dFlag ifTrue:[
+           stdout <<'output filename: ' << arg <<nl.].
             outfile := FileStream open: arg
                        mode: FileStream write.].
   
@@ -343,7 +349,7 @@ decodingtree inorder: [:char :string |
                <<'        ' << string << nl."
 ] prefix: ''.
 
-"convert decoding tree in binary"
+"convert decoding tree into binary"
 binarytree:=''.
 decodingtree postorder: [:char :isleaf |
 
@@ -386,8 +392,10 @@ tFlag ifTrue:[
 cFlag  ifTrue:[ 
 
 outfile~=nil ifTrue:[
-    stdout <<nl<< 'cFlag= '<<cFlag 
-          <<' have output file'<< nl.
+   
+    dFlag ifTrue: [
+    stdout <<nl<< 'cFlag = '<<cFlag 
+          <<'  output file = true'<< nl.].
 
    "output binary decoding tree"   
    outBytes := OutBits new: outfile.    
@@ -418,8 +426,9 @@ outfile~=nil ifTrue:[
    outBytes flushByte.
 ]
 ifFalse:[
+   dFlag ifTrue:[
    stdout <<nl<< 'cFlag = '<<cFlag
-              <<' without output file'<< nl.
+              <<' without output file'<< nl.].
     
    stdout <<nl<< '----------encoded input in binary----------' << nl.
     "add at the end 1 bit for checking 
@@ -443,7 +452,10 @@ ifFalse:[
 (uFlag) ifTrue:[
    |iseof outBytes stack|
    iseof:=false.
-   stdout<<'decompression is set'<<nl.
+
+   dFlag ifTrue: [
+   stdout<<'doing decompression'<<nl.].
+
    outBytes := OutBits new: outfile.  
    stack := OrderedCollection new.
    fileBits := BitStream new: infile.
@@ -493,15 +505,13 @@ ifFalse:[
              stack add: newtree.
            ] ifFalse:[
              treebuilt:=true.
-             stdout<<'-------------'
-                   <<'reconstructed decoding tree'<<
-                     '-------------'<<nl.
+             
              reconstructedTree:=stack removeLast.
              node:=reconstructedTree.
-
- 
+     
+            "outfile=nil ifTrue:[
             stdout<<nl<<
-                '---------decoded output-----------'<<nl<<nl.
+                '---------decoded output-----------'<<nl<<nl.]."
  
            ].
         ].
@@ -510,9 +520,11 @@ ifFalse:[
                                    decode the compressed data"
         
        node isleaf ifTrue:[
-                
-                stdout<<(node char) asCharacter.
-                node:=reconstructedTree.
+                ((node char)=256) ifTrue:[
+                    iseof:=true.
+                    ] ifFalse:[
+                     stdout nextPut: (Character value: (node char)).
+                  node:=reconstructedTree.].
                ]ifFalse:[
         treenode=0 ifTrue:[
                 
@@ -527,7 +539,9 @@ ifFalse:[
                     ] ifFalse:[
 
                      outfile=nil ifTrue:[
-                     stdout<<(node char) asCharacter.]
+
+                     stdout nextPut: (Character value: (node char)).
+                     "stdout<<(node char) asCharacter."]
                      ifFalse:[
                         8 to: 1 by: -1 do: [:index |
                            bit:= (node char) bitAt: index.
@@ -551,7 +565,9 @@ ifFalse:[
                     ] ifFalse:[
 
                      outfile=nil ifTrue:[
-                     stdout<<(node char) asCharacter.]
+
+                     stdout nextPut: (Character value: (node char)).
+                     "stdout<<(node char) asCharacter."]
                      ifFalse:[
                         8 to: 1 by: -1 do: [:index |
                            bit:= (node char) bitAt: index.
@@ -575,5 +591,8 @@ outfile~=nil ifTrue:[
 outfile close.
 ].
 ExitStatus:=0.
+dFlag ifTrue: [
 stdout<<nl<<'Exit Status: '<<ExitStatus<<nl.
+stdout<<'Finished '<<nl.
+].
 
