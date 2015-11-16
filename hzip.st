@@ -404,7 +404,7 @@ outfile~=nil ifTrue:[
          outBytes writeBit: bit.
          ].
 
-   "add at the end 1 bit for checking 
+   "at the end add 1 bit for checking 
       whether the tree is completed"  
    outBytes writeBit: 1.
 
