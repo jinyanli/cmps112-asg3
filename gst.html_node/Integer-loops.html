@@ -1,0 +1,60 @@
+<html lang="en">
+<head>
+<title>Integer loops - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Code-blocks-_0028II_0029.html#Code-blocks-_0028II_0029" title="Code blocks (II)">
+<link rel="next" href="Intervals.html#Intervals" title="Intervals">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Integer-loops"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Intervals.html#Intervals">Intervals</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Code-blocks-_0028II_0029.html#Code-blocks-_0028II_0029">Code blocks (II)</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.7.1 Integer loops</h4>
+
+<p>Integer loops are constructed by telling a number to
+drive the loop.  Try this example to count from 1 to 20:
+<pre class="example">        1 to: 20 do: [:x | x printNl ]
+</pre>
+   <p>There's also a way to count up by more than one:
+<pre class="example">        1 to: 20 by: 2 do: [:x | x printNl ]
+</pre>
+   <p>Finally, counting down is done with a negative step:
+<pre class="example">        20 to: 1 by: -1 do: [:x | x printNl ]
+</pre>
+   <p>Note that the <code>x</code> variable is local to the block.
+<pre class="example">        x
+</pre>
+   <p class="noindent">just prints <code>nil</code>.
+
+   </body></html>
+

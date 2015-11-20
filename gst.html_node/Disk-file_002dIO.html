@@ -1,0 +1,92 @@
+<html lang="en">
+<head>
+<title>Disk file-IO - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Features.html#Features" title="Features">
+<link rel="prev" href="Namespaces.html#Namespaces" title="Namespaces">
+<link rel="next" href="Object-dumping.html#Object-dumping" title="Object dumping">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Disk-file-IO"></a>
+<a name="Disk-file_002dIO"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Object-dumping.html#Object-dumping">Object dumping</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Namespaces.html#Namespaces">Namespaces</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Features.html#Features">Features</a>
+<hr>
+</div>
+
+<h3 class="section">2.4 Disk file-IO primitive messages</h3>
+
+<p>Four classes (<code>FileDescriptor</code>, <code>FileStream</code>, <code>File</code>,
+<code>Directory</code>) allow you to create files and access the file system
+in a fully object-oriented way.
+
+   <p><code>FileDescriptor</code> and <code>FileStream</code> are much more powerful than the
+corresponding C language facilities (the difference between the two is that,
+like the C <code>stdio</code> library, <code>FileStream</code> does buffering).  For one
+thing, they allow you to write raw binary data in a portable endian-neutral
+format.  But, more importantly, these classes transparently implement
+virtual filesystems and asynchronous I/O.
+
+   <p>Asynchronous I/O means that an input/output operation blocks the
+Smalltalk Process that is doing it, but not the others, which makes them
+very useful in the context of network programming.  Virtual file systems
+mean that these objects can transparently extract files from archives
+such as <samp><span class="file">tar</span></samp> and <samp><span class="file">gzip</span></samp> files, through a mechanism that can
+be extended through either shell scripting or Smalltalk programming. 
+For more information on these classes, look in the class reference, under
+the <code>VFS</code> namespace.  <acronym>URL</acronym>s may be used as file names; though,
+unless you have loaded the <code>NetClients</code> package (see <a href="Network-support.html#Network-support">Network support</a>),
+only <code>file</code> <acronym>URL</acronym>s will be accepted.
+
+   <p>In addition, the three files, <code>stdin</code>, <code>stdout</code>, and <code>stderr</code>
+are declared as global instances of <code>FileStream</code> that are bound to the
+proper values as passed to the C virtual machine.  They can be accessed as
+either <code>stdout</code> and <code>FileStream stdout</code>&mdash;the former is easier to
+type, but the latter can be clearer.
+
+   <p>Finally, <code>Object</code> defines four other methods: <code>print</code> and
+<code>printNl</code>, <code>store</code> and <code>storeNl</code>.  These do a <code>printOn:</code> or
+<code>storeOn:</code> to the &ldquo;Transcript&rdquo; object; this object, which is the sole
+instance of class <code>TextCollector</code>, normally delegates write
+operations to <code>stdout</code>.  If you load the Blox <span class="sc">gui</span>, instead,
+the Transcript Window will be attached to the Transcript object (see <a href="Blox.html#Blox">Blox</a>).
+
+   <p>The <code>fileIn:</code> message sent to the FileStream class, with a file
+name as a string argument, will cause that file to be loaded into
+Smalltalk.
+
+   <p>For example,
+<pre class="example">     FileStream fileIn: 'foo.st' !
+</pre>
+   <p class="noindent">will cause <samp><span class="file">foo.st</span></samp> to be loaded into <span class="sc">gnu</span> Smalltalk.
+
+   </body></html>
+

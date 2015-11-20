@@ -1,0 +1,96 @@
+<html lang="en">
+<head>
+<title>A look at our object - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Creating-classes.html#Creating-classes" title="Creating classes">
+<link rel="prev" href="Instance-methods.html#Instance-methods" title="Instance methods">
+<link rel="next" href="Moving-money-around.html#Moving-money-around" title="Moving money around">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="A-look-at-our-object"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Moving-money-around.html#Moving-money-around">Moving money around</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Instance-methods.html#Instance-methods">Instance methods</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Creating-classes.html#Creating-classes">Creating classes</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.4.5 Looking at our Account</h4>
+
+<p>Let's create an instance of class Account:
+<pre class="example">        a := Account new
+</pre>
+   <p>Can you guess what this does?  The <code>Smalltalk at: #a put: &lt;something&gt;</code>
+creates a Smalltalk variable.  And the <code>Account new</code> creates a new
+Account, and returns it.  So this line creates a Smalltalk
+variable named <code>a</code>, and attaches it to a new Account&mdash;all in
+one line.  It also prints the Account object we just created:
+<pre class="example">        an Account
+</pre>
+   <p>Hmmm...  not very informative.  The problem is that we didn't
+tell our Account how to print itself, so we're just getting
+the default system <code>printNl</code> method&mdash;which tells what the
+object is, but not what it contains.  So clearly we must add
+such a method:
+<pre class="example">         Account extend [
+             printOn: stream [
+                 &lt;category: 'printing'&gt;
+                 super printOn: stream.
+                 stream nextPutAll: ' with balance: '.
+                 balance printOn: stream
+             ]
+         ]
+</pre>
+   <p>Now give it a try again:
+<pre class="example">        a
+</pre>
+   <p class="noindent">which prints:
+<pre class="example">        an Account with balance: 0
+</pre>
+   <p>This may seem a little strange.  We added a new method,
+printOn:, and our printNl message starts behaving differently. 
+It turns out that the printOn: message is the central
+printing function&mdash;once you've defined it, all of the
+other printing methods end up calling it.  Its argument is a
+place to print to&mdash;quite often it is the variable <code>Transcript</code>. 
+This variable is usually hooked to your terminal, and thus
+you get the printout to your screen.
+
+   <p>The <code>super printOn: stream</code> lets our parent do what it
+did before&mdash;print out what our type is.  The <code>an Account</code>
+part of the printout came from this. 
+<code>stream nextPutAll: ' with balance: '</code> creates the
+string <code> with balance: </code>, and prints it out to the stream,
+too; note that we don't use <code>printOn:</code> here because that would
+enclose our string within quotes.  Finally, <code>balance printOn: stream</code>
+asks whatever object is hooked to the <code>balance</code> variable to print
+itself to the stream.  We set <code>balance</code> to 0, so the 0 gets printed out.
+
+   </body></html>
+

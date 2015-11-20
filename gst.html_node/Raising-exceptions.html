@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+<title>Raising exceptions - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Exception-handling.html#Exception-handling" title="Exception handling">
+<link rel="prev" href="Creating-exceptions.html#Creating-exceptions" title="Creating exceptions">
+<link rel="next" href="Handling-exceptions.html#Handling-exceptions" title="Handling exceptions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Raising-exceptions"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Handling-exceptions.html#Handling-exceptions">Handling exceptions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Creating-exceptions.html#Creating-exceptions">Creating exceptions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Exception-handling.html#Exception-handling">Exception handling</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.11.2 Raising exceptions</h4>
+
+<p>Raising an exception is really a two-step process.  First, you create
+the exception object; then, you send it <code>#signal</code>.
+
+   <p>If you look through the hierarchy, you'll see many class methods
+that combine these steps for convenience.  For example, the class
+<code>Exception</code> provides <code>#new</code> and <code>#signal</code>, where the
+latter is just <code>^self new signal</code>.
+
+   <p>You may be tempted to provide only a signalling variant of your own
+exception creation methods.  However, this creates the problem that
+your subclasses will not be able to trivially provide new instance
+creation methods.
+
+<pre class="example">     Error subclass: ReadOnlyText [
+         ReadOnlyText class &gt;&gt; signalOn: aText range: anInterval [
+             ^self new initText: aText range: anInterval; signal
+         ]
+     
+         initText: aText range: anInterval [
+             &amp;lt;category: 'private'&gt;
+             ...
+         ]
+     ]
+</pre>
+   <p>Here, if you ever want to subclass <code>ReadOnlyText</code> and add new
+information to the instance before signalling it, you'll have to use
+the private method #initText:range:.
+
+   <p>We recommend leaving out the signalling instance-creation variant in new
+code, as it saves very little work and makes signalling code less clear. 
+Use your own judgement and evaluation of the situation to determine when
+to include a signalling variant.
+
+   </body></html>
+

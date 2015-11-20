@@ -1,0 +1,68 @@
+<html lang="en">
+<head>
+<title>Creating new exception classes - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Exception-handling.html#Exception-handling" title="Exception handling">
+<link rel="prev" href="When-an-exception-isn_0027t-handled.html#When-an-exception-isn_0027t-handled" title="When an exception isn't handled">
+<link rel="next" href="Hooking-into-the-stack-unwinding.html#Hooking-into-the-stack-unwinding" title="Hooking into the stack unwinding">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Creating-new-exception-classes"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Hooking-into-the-stack-unwinding.html#Hooking-into-the-stack-unwinding">Hooking into the stack unwinding</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="When-an-exception-isn_0027t-handled.html#When-an-exception-isn_0027t-handled">When an exception isn't handled</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Exception-handling.html#Exception-handling">Exception handling</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.11.5 Creating new exception classes</h4>
+
+<p>If you want code to be able to handle your signalled exceptions, you will
+probably want to provide a way to pick those kinds out automatically. 
+The easiest way to do this is to subclass <code>Exception</code>.
+
+   <p>First, you should choose an exception class to specialize.  <code>Error</code>
+is the best choice for non-resumable exceptions, and <code>Notification</code>
+or its subclass <code>Warning</code> is best for exceptions that should resume
+with <code>nil</code> by default.
+
+   <p>Exceptions are just normal objects; include whatever information you think
+would be useful to handlers.  Note that there are two textual description
+fields, a <dfn>description</dfn> and a <dfn>message text</dfn>.  The description,
+if provided, should be a more-or-less constant string answered from a
+override method on <code>#description</code>, meant to describe all instances
+of your exception class.  The message text is meant to be provided at
+the point of signalling, and should be used for any extra information
+that code might want to provide.  Your signalling code can provide the
+<code>messageText</code> by using <code>#signal:</code> instead of <code>#signal</code>. 
+This is yet another reason why signalling variants of instance creation
+messages can be more trouble than they're worth.
+
+   </body></html>
+

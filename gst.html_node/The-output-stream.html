@@ -1,0 +1,70 @@
+<html lang="en">
+<head>
+<title>The output stream - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Streams.html#Streams" title="Streams">
+<link rel="next" href="Your-own-stream.html#Your-own-stream" title="Your own stream">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="The-output-stream"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Your-own-stream.html#Your-own-stream">Your own stream</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Streams.html#Streams">Streams</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.10.1 The Output Stream</h4>
+
+<p>The examples in this book all work because they write
+their output to the <code>Transcript</code> stream.  Each class implements
+the <code>printOn:</code> method, and writes its output to the supplied
+stream.  The <code>printNl</code> method all objects use is simply to
+send the current object a <code>printOn:</code> message whose argument is
+<code>Transcript</code> (by default attached to the standard output stream
+found in the <code>stdout</code> global).  You can invoke the standard output stream
+directly:
+<pre class="example">        'Hello, world' printOn: stdout
+        stdout inspect
+</pre>
+   <p class="noindent">or you can do the same for the Transcript, which is yet another stream:
+<pre class="example">        'Hello, world' printOn: stdout
+        Transcript inspect
+</pre>
+   <p class="noindent">the last <code>inspect</code> statement will show you how the <code>Transcript</code> is
+linked to <code>stdout</code><a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> Try executing it under Blox, where the
+Transcript is linked to the omonymous window!</p>
+
+   <p><hr></div>
+
+   </body></html>
+

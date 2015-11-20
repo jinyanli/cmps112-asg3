@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+<title>Memory access - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Features.html#Features" title="Features">
+<link rel="prev" href="Documentation.html#Documentation" title="Documentation">
+<link rel="next" href="GC.html#GC" title="GC">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Memory-access"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="GC.html#GC">GC</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Documentation.html#Documentation">Documentation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Features.html#Features">Features</a>
+<hr>
+</div>
+
+<h3 class="section">2.8 Memory accessing methods</h3>
+
+<p><span class="sc">gnu</span> Smalltalk provides methods to query its own internal data structures. 
+You may determine the real memory address of an object or the real
+memory address of the OOP table that points to a given object, by
+using messages to the <code>Memory</code> class, described below.
+
+<div class="defun">
+&mdash; Method on Object: <b>asOop</b><var><a name="index-asOop-on-Object-20"></a></var><br>
+<blockquote><p>Returns the index of the OOP for anObject.  This index is immume from
+garbage collection and is the same value used by default as an hash
+value for anObject (it is returned by Object's implementation of
+<code>hash</code> and <code>identityHash</code>). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on Integer: <b>asObject</b><var><a name="index-asObject-on-Integer-21"></a></var><br>
+<blockquote><p>Converts the given OOP <em>index</em> (not address) back to an object. 
+Fails if no object is associated to the given index. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on Integer: <b>asObjectNoFail</b><var><a name="index-asObjectNoFail-on-Integer-22"></a></var><br>
+<blockquote><p>Converts the given OOP <em>index</em> (not address) back to an object. 
+Returns nil if no object is associated to the given index. 
+</p></blockquote></div>
+
+   <p>Other methods in ByteArray and Memory allow to read various C types
+(<code>doubleAt:</code>, <code>ucharAt:</code>, etc.).  For examples of using
+<code>asOop</code> and <code>asObject</code>, look at the Blox source code in
+<samp><span class="file">blox-tk/BloxBasic.st</span></samp>.
+
+   <p>Another interesting class is ObjectMemory.  This provides a few methods
+that enable one to tune the virtual machine's usage of memory; many
+methods that in the past were instance methods of Smalltalk or class
+methods of Memory are now class methods of ObjectMemory.  In addition,
+and that's what the rest of this section is about, the virtual machines
+signals events to its dependents exactly through this class.
+
+   <p>The events that can be received are
+     <dl>
+<dt><dfn>returnFromSnapshot</dfn><dd>This is sent every time an image is restarted, and substitutes the
+concept of an <dfn>init block</dfn> that was present in previous versions.
+
+     <br><dt><dfn>aboutToQuit</dfn><dd>This is sent just before the interpreter is exiting, either because
+<code>ObjectMemory quit</code> was sent or because the specified files were
+all filed in.  Exiting from within this event might cause an infinite
+loop, so be careful.
+
+     <br><dt><dfn>aboutToSnapshot</dfn><dd>This is sent just before an image file is created.  Exiting from within
+this event will leave any preexisting image untouched.
+
+     <br><dt><dfn>finishedSnapshot</dfn><dd>This is sent just after an image file is created.  Exiting from within
+this event will not make the image unusable. 
+</dl>
+
+   </body></html>
+

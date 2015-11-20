@@ -1,0 +1,88 @@
+<html lang="en">
+<head>
+<title>Creating classes - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Tutorial.html#Tutorial" title="Tutorial">
+<link rel="prev" href="The-hierarchy.html#The-hierarchy" title="The hierarchy">
+<link rel="next" href="Creating-subclasses.html#Creating-subclasses" title="Creating subclasses">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Creating-classes"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Creating-subclasses.html#Creating-subclasses">Creating subclasses</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="The-hierarchy.html#The-hierarchy">The hierarchy</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Tutorial.html#Tutorial">Tutorial</a>
+<hr>
+</div>
+
+<h3 class="section">6.4 Creating a new class of objects</h3>
+
+<p>With the basic techniques presented in the preceding
+chapters, we're ready do our first real Smalltalk program. 
+In this chapter we will construct three new types of objects
+(known as <i>classes</i>), using the Smalltalk technique of
+inheritance to tie the classes together, create new objects
+belonging to these classes (known as creating instances of
+the class), and send messages to these objects.
+
+   <p>We'll exercise all this by implementing a toy home-finance
+accounting system.  We will keep track of our overall
+cash, and will have special handling for our checking
+and savings accounts.  From this point on, we will be defining
+classes which will be used in future chapters.  Since
+you will probably not be running this whole tutorial in one
+Smalltalk session, it would be nice to save off the state of
+Smalltalk and resume it without having to retype all the
+previous examples.  To save the current state of <span class="sc">gnu</span> Smalltalk,
+type:
+
+<pre class="example">        ObjectMemory snapshot: 'myimage.im'
+</pre>
+   <p class="noindent">and from your shell, to later restart Smalltalk from this
+&ldquo;snapshot&rdquo;:
+<pre class="example">        <b>$</b> gst -I myimage.im
+</pre>
+   <p>Such a snapshot currently takes a little more than a megabyte,
+and contains all variables, classes, and definitions you
+have added.
+
+<ul class="menu">
+<li><a accesskey="1" href="A-new-class.html#A-new-class">A new class</a>:                   Creating a new class
+<li><a accesskey="2" href="Documenting-the-class.html#Documenting-the-class">Documenting the class</a>:         So anybody will know what it's about
+<li><a accesskey="3" href="Defining-methods.html#Defining-methods">Defining methods</a>:              So it will be useful
+<li><a accesskey="4" href="Instance-methods.html#Instance-methods">Instance methods</a>:              One of two kind of methods (the others,
+                                 class methods, are above)
+<li><a accesskey="5" href="A-look-at-our-object.html#A-look-at-our-object">A look at our object</a>:          which will sorely show that something
+                                 is still missing. 
+<li><a accesskey="6" href="Moving-money-around.html#Moving-money-around">Moving money around</a>:           Let's make it more fun! 
+<li><a accesskey="7" href="Next-coming.html#Next-coming">Next coming</a>:                   Yeah, what's next?!? 
+</ul>
+
+   </body></html>
+

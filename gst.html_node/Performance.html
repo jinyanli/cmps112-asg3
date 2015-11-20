@@ -1,0 +1,156 @@
+<html lang="en">
+<head>
+<title>Performance - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Behind-the-scenes.html#Behind-the-scenes" title="Behind the scenes">
+<link rel="prev" href="Why-is-_0023new-there_003f_0021_003f.html#Why-is-_0023new-there_003f_0021_003f" title="Why is #new there?!?">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Performance"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Why-is-_0023new-there_003f_0021_003f.html#Why-is-_0023new-there_003f_0021_003f">Why is #new there?!?</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Behind-the-scenes.html#Behind-the-scenes">Behind the scenes</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.12.4 The truth of Smalltalk performance</h4>
+
+<p>Everybody says Smalltalk is slow, yet this is not completely true for
+at least three reasons.  First, most of the time in graphical applications
+is spent waiting for the user to &ldquo;do something&rdquo;, and most of the time
+in scripting applications (which <span class="sc">gnu</span> Smalltalk is particularly well
+versed in) is spent in disk I/O; implementing a travelling salesman
+problem in Smalltalk would indeed be slow, but for most real applications
+you can indeed exchange performance for Smalltalk's power and development
+speed.
+
+   <p>Second, Smalltalk's automatic memory management is faster than C's manual
+one.  Most C programs are sped up if you relink them with one of the
+garbage collecting systems available for C or C++.
+
+   <p>Third, even though very few Smalltalk virtual machines are as optimized as,
+say, the Self environment (which reaches half the speed of optimized C!),
+they do perform some optimizations on Smalltalk code which make them run
+many times faster than a naive bytecode interpreter.  Peter Deutsch, who
+among other things invented the idea of a just-in-time compiler like those
+you are used to seeing for Java<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>, once observed that implementing a
+language like Smalltalk efficiently requires the implementor to cheat... 
+but that's okay as long as you don't get caught.  That is, as long as you
+don't break the language semantics.  Let's look at some of these optimizations.
+
+   <p>For certain frequently used 'special selectors', the compiler emits a
+send-special-selector bytecode instead of a send-message bytecode. 
+Special selectors have one of three behaviors:
+
+     <ul>
+<li>A few selectors are assigned to special bytecode solely in order to
+save space.  This is the case for <code>#do:</code> for example.
+
+     <li>Three selectors (<code>#at:</code>, <code>#at:put:</code>, <code>#size</code>) are
+assigned to special bytecodes because they are subject to a special
+caching optimization.  These selectors often result in calling a
+virtual machine primitive, so <span class="sc">gnu</span> Smalltalk remembers which primitve
+was last called as the result of sending them.  If we send <code>#at:</code>
+100 times for the same class, the last 99 sends are directly mapped
+to the primitive, skipping the method lookup phase.
+
+     <li>For some pairs of receiver classes and special selectors, the
+interpreter never looks up the method in the class; instead it swiftly
+executes the same code which is tied to a particular primitive.  Of
+course a special selector whose receiver or argument is not of the
+right class to make a no-lookup pair is looked up normally. 
+</ul>
+
+   <p>No-lookup methods do contain a primitive number specification,
+<code>&lt;primitive: xx&gt;</code>, but it is used only when the method is
+reached through a <code>#perform:...</code> message send.  Since
+the method is not normally looked up, deleting the primitive name
+specification cannot in general prevent this primitive from running. 
+No-lookup pairs are listed below:
+
+   <p><table summary=""><tr align="left"><td valign="top" width="35%"><code>Integer</code>/<code>Integer</code> <br>
+<code>Float</code>/<code>Integer</code> <br>
+<code>Float</code>/<code>Float</code>
+</td><td valign="top" width="10%"> <br> for
+</td><td valign="top" width="55%"> <br> <code>+ - * =  ~=  &gt;  &lt;  &gt;=  &lt;=</code>
+
+<p><br></td></tr><tr align="left"><td valign="top" width="35%"><code>Integer</code>/<code>Integer</code>
+</td><td valign="top" width="10%">for
+</td><td valign="top" width="55%"><code>//  \\     bitOr:  bitShift:  bitAnd:</code>
+
+<p><br></td></tr><tr align="left"><td valign="top" width="35%">Any pair of objects
+</td><td valign="top" width="10%">for
+</td><td valign="top" width="55%"><code>==  isNil  notNil  class</code>
+
+<p><br></td></tr><tr align="left"><td valign="top" width="35%">BlockClosure
+</td><td valign="top" width="10%">for
+</td><td valign="top" width="55%"><code>value value: blockCopy:</code><a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>
+   <br></td></tr></table>
+
+   <p>Other messages are open coded by the compiler.  That is, there are
+no message sends for these messages&mdash;if the compiler sees blocks
+without temporaries and with the correct number of arguments at the
+right places, the compiler unwinds them using jump bytecodes,
+producing very efficient code.  These are:
+
+<pre class="example">       to:by:do: if the second argument is an integer literal
+       to:do:
+       timesRepeat:
+       and:, or:
+       ifTrue:ifFalse:, ifFalse:ifTrue:, ifTrue:, ifFalse:
+       whileTrue:, whileFalse:
+</pre>
+   <p>Other minor optimizations are done.  Some are done by a peephole optimizer
+which is ran on the compiled bytecodes.  Or, for example, when <span class="sc">gnu</span> Smalltalk pushes a
+boolean value on the stack, it automatically checks whether the following
+bytecode is a jump (which is a common pattern resulting from most of the
+open-coded messages above) and combines the execution of the two bytecodes. 
+All these snippets can be optimized this way:
+
+<pre class="example">       1 to: 5 do: [ :i | ... ]
+       a &lt; b and: [ ... ]
+       myObject isNil ifTrue: [ ... ]
+</pre>
+   <p>That's all.  If you want to know more, look at the virtual machine's source
+code in <samp><span class="file">libgst/interp-bc.inl</span></samp> and at the compiler in
+<samp><span class="file">libgst/comp.c</span></samp>.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> And like the one that <span class="sc">gnu</span> Smalltalk
+includes as an experimental feature.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> You
+won't ever send this message in Smalltalk programs.  The compiler uses it when
+compiling blocks.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

@@ -1,0 +1,100 @@
+<html lang="en">
+<head>
+<title>Loading or creating an image - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Operation.html#Operation" title="Operation">
+<link rel="prev" href="Command_002dline-processing.html#Command_002dline-processing" title="Command-line processing">
+<link rel="next" href="Starting-the-system.html#Starting-the-system" title="Starting the system">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Loading-or-creating-an-image"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Starting-the-system.html#Starting-the-system">Starting the system</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Command_002dline-processing.html#Command_002dline-processing">Command-line processing</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Operation.html#Operation">Operation</a>
+<hr>
+</div>
+
+<h4 class="subsection">1.2.2 Loading an image or creating a new one</h4>
+
+<p><a name="index-compatible-images-11"></a><a name="index-images_002c-loading-12"></a><span class="sc">gnu</span> Smalltalk can load images created on any system with the same pointer size
+as its host system by approximately the same version of <span class="sc">gnu</span> Smalltalk, even if
+they have different endianness.  For example, images created on 32-bit
+PowerPC can be loaded with a 32-bit x86 <samp><span class="command">gst</span></samp> <acronym>VM</acronym>,
+provided that the <span class="sc">gnu</span> Smalltalk versions are similar enough.  Such images are
+called <dfn>compatible images</dfn>.  It cannot load images created on
+systems with different pointer sizes; for example, our x86 <samp><span class="command">gst</span></samp>
+cannot load an image created on x86-64.
+
+   <p>Unless the <samp><span class="option">-i</span></samp> flag is used, <span class="sc">gnu</span> Smalltalk first tries to load the file
+named by <samp><span class="option">--image-file</span></samp>, defaulting to <samp><span class="file">gst.im</span></samp> in the image
+path.  If this is found, <span class="sc">gnu</span> Smalltalk ensures the image is &ldquo;not stale&rdquo;,
+meaning its write date is newer than the write dates of all of the
+kernel method definition files.  It also ensures that the image is
+&ldquo;compatible&rdquo;, as described above.  If both tests pass, <span class="sc">gnu</span> Smalltalk loads
+the image and continues with <a href="Starting-the-system.html#Starting-the-system">After the image is created or restored</a>.
+
+   <p>If that fails, a new image has to be created.  The image path may now be
+changed to the current directory if the previous choice is not
+writeable.
+
+   <p><a name="index-kernel_002c-loading-13"></a>To build an image, <span class="sc">gnu</span> Smalltalk loads the set of files that make up the
+kernel, one at a time.  The list can be found in <samp><span class="file">libgst/lib.c</span></samp>, in
+the <code>standard_files</code> variable.  You can override kernel files by
+placing your own copies in <samp><span class="file">~/.st/kernel/</span></samp>.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>  For
+example, if you create a file <samp><span class="file">~/.st/kernel/Builtins.st</span></samp>, it will
+be loaded instead of the <samp><span class="file">Builtins.st</span></samp> in the kernel path.
+
+   <p><a name="index-g_t_0040file_007bpre_002est_007d-14"></a><a name="index-g_t_0040file_007bsite_002dpre_002est_007d-15"></a>To aid with image customization and local bug fixes, <span class="sc">gnu</span> Smalltalk loads two
+more files (if present) before saving the image.  The first is
+<samp><span class="file">site-pre.st</span></samp>, found in the parent directory of the kernel
+directory.  Unless users at a site change the kernel directory when
+running <samp><span class="command">gst</span></samp>, <samp><span class="file">/usr/local/share/smalltalk/site-pre.st</span></samp>
+provides a convenient place for site-wide customization.  The second is
+<samp><span class="file">~/.st/pre.st</span></samp>, which can be different for each user's home
+directory.<a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>.
+
+   <p>Before the next steps, <span class="sc">gnu</span> Smalltalk takes a snapshot of the new memory image,
+saving it over the old image file if it can, or in the current directory
+otherwise.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> The directory
+is called <samp><span class="file">_st/kernel</span></samp> under MS-DOS.  Under OSes that don't use
+home directories, it is looked for in the current directory.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> The file is looked up as <samp><span class="file">_st/pre.st</span></samp> under
+MS-DOS and again, under OSes that don't use home directories it is
+looked for as <samp><span class="file">pre.st</span></samp> in the current directory.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

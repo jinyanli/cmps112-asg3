@@ -1,0 +1,69 @@
+<html lang="en">
+<head>
+<title>Moving money around - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Creating-classes.html#Creating-classes" title="Creating classes">
+<link rel="prev" href="A-look-at-our-object.html#A-look-at-our-object" title="A look at our object">
+<link rel="next" href="Next-coming.html#Next-coming" title="Next coming">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Moving-money-around"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Next-coming.html#Next-coming">Next coming</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="A-look-at-our-object.html#A-look-at-our-object">A look at our object</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Creating-classes.html#Creating-classes">Creating classes</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.4.6 Moving money around</h4>
+
+<p>We can now create accounts, and look at them.  As it
+stands, though, our balance will always be 0&mdash;what a tragedy! 
+Our final methods will let us deposit and spend money. 
+They're very simple:
+
+<pre class="example">        Account extend [
+            spend: amount [
+                &lt;category: 'moving money'&gt;
+                balance := balance - amount
+            ]
+            deposit: amount [
+                &lt;category: 'moving money'&gt;
+                balance := balance + amount
+            ]
+        ]
+</pre>
+   <p>With these methods you can now deposit and spend amounts of
+money.  Try these operations:
+<pre class="example">        a deposit: 125
+        a deposit: 20
+        a spend: 10
+</pre>
+   </body></html>
+

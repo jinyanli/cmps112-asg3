@@ -1,0 +1,60 @@
+<html lang="en">
+<head>
+<title>Intervals - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Code-blocks-_0028II_0029.html#Code-blocks-_0028II_0029" title="Code blocks (II)">
+<link rel="prev" href="Integer-loops.html#Integer-loops" title="Integer loops">
+<link rel="next" href="Invoking-code-blocks.html#Invoking-code-blocks" title="Invoking code blocks">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Intervals"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Invoking-code-blocks.html#Invoking-code-blocks">Invoking code blocks</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Integer-loops.html#Integer-loops">Integer loops</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Code-blocks-_0028II_0029.html#Code-blocks-_0028II_0029">Code blocks (II)</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.7.2 Intervals</h4>
+
+<p>It is also possible to represent a range of numbers as
+a standalone object.  This allows you to represent a range
+of numbers as a single object, which can be passed around
+the system.
+<pre class="example">        i := Interval from: 5 to: 10
+        i do: [:x | x printNl]
+</pre>
+   <p>As with the integer loops, the Interval class can also
+represent steps greater than 1.  It is done much like it was
+for our numeric loop above:
+<pre class="example">        i := (Interval from: 5 to: 10 by: 2)
+        i do: [:x| x printNl]
+</pre>
+   </body></html>
+

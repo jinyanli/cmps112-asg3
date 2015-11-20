@@ -1,0 +1,318 @@
+<html lang="en">
+<head>
+<title>Other C functions - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="C-and-Smalltalk.html#C-and-Smalltalk" title="C and Smalltalk">
+<link rel="prev" href="Incubator.html#Incubator" title="Incubator">
+<link rel="next" href="Using-Smalltalk.html#Using-Smalltalk" title="Using Smalltalk">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Other-C-functions"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Using-Smalltalk.html#Using-Smalltalk">Using Smalltalk</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Incubator.html#Incubator">Incubator</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="C-and-Smalltalk.html#C-and-Smalltalk">C and Smalltalk</a>
+<hr>
+</div>
+
+<h3 class="section">5.7 Other functions available to modules</h3>
+
+<p>In addition to the functions described so far, the <code>VMProxy</code> that is
+available to modules contains entry-points for many functions that aid
+in developing <span class="sc">gnu</span> Smalltalk extensions in C.  This node documents these
+functions and the macros that are defined by <samp><span class="file">libgst/gstpub.h</span></samp>.
+
+<div class="defun">
+&mdash; Function: void <b>asyncCall</b> (<var>void </var>(<var>*</var>) (<var>OOP</var>)<var>, OOP</var>)<var><a name="index-asyncCall-77"></a></var><br>
+<blockquote><p>This functions accepts a function pointer and an OOP (or <code>NULL</code>, but
+not an arbitrary pointer) and sets up the interpreter to call the
+function as soon as the next message send is executed.
+
+        <p><em>Caution:</em> This and the next two are the only functions in the
+<code>intepreterProxy</code> that are thread-safe. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: void <b>asyncSignal</b> (<var>OOP</var>)<var><a name="index-asyncSignal-78"></a></var><br>
+<blockquote><p>This functions accepts an OOP for a <code>Semaphore</code> object and signals
+that object so that one of the processes waiting on that semaphore is
+waken up.  Since a Smalltalk call-in is not an atomic operation, the
+correct way to signal a semaphore is not to send the <code>signal</code>
+method to the object but, rather, to use:
+
+     <pre class="example">              asyncSignal(semaphoreOOP)
+     </pre>
+        <p>The signal request will be processed as soon as the next message send is
+executed. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: void <b>asyncSignalAndUnregister</b> (<var>OOP</var>)<var><a name="index-asyncSignalAndUnregister-79"></a></var><br>
+<blockquote><p>This functions accepts an OOP for a <code>Semaphore</code> object and signals
+that object so that one of the processes waiting on that semaphore is
+waken up; the signal request will be processed as soon as the next
+message send is executed.  The object is then removed from the registry. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: void <b>syncSignal</b> (<var>OOP, mst_Boolean</var>)<var><a name="index-syncSignal-80"></a></var><br>
+<blockquote><p>This functions accepts an OOP for a <code>Semaphore</code> object and signals
+that object so that one of the processes waiting on that semaphore is
+waken up.  If the semaphore has no process waiting in the queue and
+the second argument is true, an excess signal is added to the semaphore. 
+Since a Smalltalk call-in is not an atomic operation, the correct way to
+signal a semaphore is not to send the <code>signal</code> or <code>notify</code>
+methods to the object but, rather, to use:
+
+     <pre class="example">              syncSignal(semaphoreOOP, true)
+     </pre>
+        <p>The <code>sync</code> in the name of this function distinguishes it from
+<code>asyncSignal</code>, in that it can only be called from a procedure
+already scheduled with <code>asyncCall</code>, or from a call-in.  It
+cannot be called from other threads than the Smalltalk thread. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: void <b>syncWait</b> (<var>OOP</var>)<var><a name="index-syncWait-81"></a></var><br>
+<blockquote><p>This functions accepts an OOP for a <code>Semaphore</code> object and puts the
+current process to sleep, unless the semaphore has excess signals on it. 
+Since a Smalltalk call-in is not an atomic operation, the correct way to
+signal a semaphore is not to send the <code>wait</code> method to the object
+but, rather, to use:
+
+     <pre class="example">              syncWait(semaphoreOOP)
+     </pre>
+        <p>As for <code>syncSignal</code>, this function can only be called from a
+procedure already scheduled with <code>asyncCall</code>, or from a call-in. 
+It cannot be called from other threads than the Smalltalk thread. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: void <b>showBacktrace</b> (<var>FILE *</var>)<var><a name="index-showBacktrace-82"></a></var><br>
+<blockquote><p>This functions show a backtrace on the given file. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: OOP <b>objectAlloc</b> (<var>OOP, int</var>)<var><a name="index-objectAlloc-83"></a></var><br>
+<blockquote><p>The <code>objectAlloc</code> function allocates an OOP for a newly created
+instance of the class whose OOP is passed as the first parameter; if
+that parameter is not a class the results are undefined (for now, read
+as &ldquo;the program will most likely core dump&rdquo;, but that could change in
+a future version).
+
+        <p>The second parameter is used only if the class is an indexable one,
+otherwise it is discarded: it contains the number of indexed instance
+variables in the object that is going to be created.  Simple uses of
+<code>objectAlloc</code> include:
+
+     <pre class="example">          OOP myClassOOP;
+          OOP myNewObject;
+          myNewObjectData obj;
+          <span class="roman">...</span>
+          myNewObject = objectAlloc(myClassOOP, 0);
+          obj = (myNewObjectData) OOP_TO_OBJ (myNewObject);
+          obj-&gt;arguments = objectAlloc(classNameToOOP("Array"), 10);
+          <span class="roman">...</span>
+     </pre>
+        </blockquote></div>
+
+<div class="defun">
+&mdash; Function: size_t <b>OOPSize</b> (<var>OOP</var>)<var><a name="index-OOPSize-84"></a></var><br>
+<blockquote><p>Return the number of indexed instance variables in the given object. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: OOP <b>OOPAt</b> (<var>OOP, size_t</var>)<var><a name="index-OOPAt-85"></a></var><br>
+<blockquote><p>Return an indexed instance variable of the given object.  The index is
+in the second parameter and is zero-based.  The function aborts if the index
+is out of range. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: OOP <b>OOPAtPut</b> (<var>OOP, size_t, OOP</var>)<var><a name="index-OOPAtPut-86"></a></var><br>
+<blockquote><p>Put the object given as the third parameter into an indexed instance variable
+of the object given as the first parameter.  The index in the second parameter
+and is zero-based.  The function aborts if the index is out of range.
+
+        <p>The function returns the old value of the indexed instance variable. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: enum gst_indexed_kind <b>OOPIndexedKind</b> (<var>OOP</var>)<var><a name="index-OOPIndexedKind-87"></a></var><br>
+<blockquote><p>Return the kind of indexed instance variables that the given object has. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: void * <b>OOPIndexedBase</b> (<var>OOP</var>)<var><a name="index-OOPIndexedBase-88"></a></var><br>
+<blockquote><p>Return a pointer to the first indexed instance variable of the given object. 
+The program should first retrieve the kind of data using OOPIndexedKind. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: OOP <b>getObjectClass</b> (<var>OOP</var>)<var><a name="index-getObjectClass-89"></a></var><br>
+<blockquote><p>Return the class of the Smalltalk object passed as a parameter. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: OOP <b>getSuperclass</b> (<var>OOP</var>)<var><a name="index-getSuperclass-90"></a></var><br>
+<blockquote><p>Return the superclass of the class given by the Smalltalk object,
+that is passed as a parameter. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: mst_Boolean <b>classIsKindOf</b> (<var>OOP, OOP</var>)<var><a name="index-classIsKindOf-91"></a></var><br>
+<blockquote><p>Return true if the class given as the first parameter, is the same
+or a superclass of the class given as the second parameter. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: mst_Boolean <b>objectIsKindOf</b> (<var>OOP, OOP</var>)<var><a name="index-objectIsKindOf-92"></a></var><br>
+<blockquote><p>Return true if the object given as the first parameter is an
+instance of the class given as the second parameter, or of any
+of its subclasses. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: mst_Boolean <b>classImplementsSelector</b> (<var>OOP, OOP</var>)<var><a name="index-classImplementsSelector-93"></a></var><br>
+<blockquote><p>Return true if the class given as the first parameter implements
+or overrides the method whose selector is given as the second parameter. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: mst_Boolean <b>classCanUnderstand</b> (<var>OOP, OOP</var>)<var><a name="index-classCanUnderstand-94"></a></var><br>
+<blockquote><p>Return true if instances of the class given as the first parameter
+respond to the message whose selector is given as the second parameter. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: mst_Boolean <b>respondsTo</b> (<var>OOP, OOP</var>)<var><a name="index-respondsTo-95"></a></var><br>
+<blockquote><p>Return true if the object given as the first parameter
+responds to the message whose selector is given as the second parameter. 
+</p></blockquote></div>
+
+   <p>Finally, several slots of the interpreter proxy provide access to the
+system objects and to the most important classes.  These are:
+     <ul>
+<li><code>nilOOP</code>, <code>trueOOP</code>, <code>falseOOP</code>, <code>processorOOP</code>
+<li><code>objectClass</code>, <code>arrayClass</code>, <code>stringClass</code>,
+    <code>characterClass</code>, <code>smallIntegerClass</code>, <code>floatDClass</code>,
+    <code>floatEClass</code>, <code>byteArrayClass</code>, <code>objectMemoryClass</code>,
+    <code>classClass</code>, <code>behaviorClass</code>, <code>blockClosureClass</code>,
+    <code>contextPartClass</code>, <code>blockContextClass</code>,
+    <code>methodContextClass</code>, <code>compiledMethodClass</code>,
+    <code>compiledBlockClass</code>, <code>fileDescriptorClass</code>,
+    <code>fileStreamClass</code>, <code>processClass</code>, <code>semaphoreClass</code>,
+    <code>cObjectClass</code>
+</ul>
+
+   <p>More may be added in the future
+
+   <p>The macros are<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>:
+
+<div class="defun">
+&mdash; Macro: <b>gst_object</b><var> OOP_TO_OBJ </var>(<var>OOP</var>)<var><a name="index-gst_005fobject-96"></a></var><br>
+<blockquote><p>Dereference a pointer to an OOP into a pointer to the actual object data
+(see <a href="Object-representation.html#Object-representation">Object representation</a>).  The result of <code>OOP_TO_OBJ</code> is not
+valid anymore if a garbage-collection happens; for this reason, you
+should assume that a pointer to object data is not valid after doing a
+call-in, calling <code>objectAlloc</code>, and caling any of the &ldquo;C to
+Smalltalk&rdquo; functions (see <a href="Smalltalk-types.html#Smalltalk-types">Smalltalk types</a>). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>OOP</b><var> OOP_CLASS </var>(<var>OOP</var>)<var><a name="index-OOP-97"></a></var><br>
+<blockquote><p>Return the OOP for the class of the given object.  For example,
+<code>OOP_CLASS(proxy-&gt;stringToOOP("Wonderful </code><span class="sc">gnu</span><code> Smalltalk"))</code> is the
+<code>String</code> class, as returned by <code>classNameToOOP("String")</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> IS_INT </var>(<var>OOP</var>)<var><a name="index-mst_005fBoolean-98"></a></var><br>
+<blockquote><p>Return a Boolean indicating whether or not the OOP is an Integer object;
+the value of SmallInteger objects is encoded directly in the OOP, not
+separately in a <code>gst_object</code> structure.  It is not safe to use
+<code>OOP_TO_OBJ</code> and <code>OOP_CLASS</code> if <code>isInt</code> returns false. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> IS_OOP </var>(<var>OOP</var>)<var><a name="index-mst_005fBoolean-99"></a></var><br>
+<blockquote><p>Return a Boolean indicating whether or not the OOP is a `real' object
+(and not a SmallInteger).  It is safe to use <code>OOP_TO_OBJ</code> and
+<code>OOP_CLASS</code> only if <code>IS_OOP</code> returns true. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> ARRAY_OOP_AT </var>(<var>gst_object, int</var>)<var><a name="index-mst_005fBoolean-100"></a></var><br>
+<blockquote><p>Access the character given in the second parameter of the given Array
+object.  Note that this is necessary because of the way
+<code>gst_object</code> is defined, which prevents <code>indexedOOP</code> from
+working. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> STRING_OOP_AT </var>(<var>gst_object, int</var>)<var><a name="index-mst_005fBoolean-101"></a></var><br>
+<blockquote><p>Access the character given in the second parameter of the given String
+or ByteArray object.  Note that this is necessary because of the way
+<code>gst_object</code> is defined, which prevents <code>indexedByte</code> from
+working. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> INDEXED_WORD </var>(<var>some-object-type, int</var>)<var><a name="index-mst_005fBoolean-102"></a></var><br>
+<blockquote><p>Access the given indexed instance variable in a
+<code>variableWordSubclass</code>.  The first parameter must be a structure
+declared as described in <a href="Object-representation.html#Object-representation">Object representation</a>). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> INDEXED_BYTE </var>(<var>some-object-type, int</var>)<var><a name="index-mst_005fBoolean-103"></a></var><br>
+<blockquote><p>Access the given indexed instance variable in a
+<code>variableByteSubclass</code>.  The first parameter must be a structure
+declared as described in <a href="Object-representation.html#Object-representation">Object representation</a>). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>mst_Boolean</b><var> INDEXED_OOP </var>(<var>some-object-type, int</var>)<var><a name="index-mst_005fBoolean-104"></a></var><br>
+<blockquote><p>Access the given indexed instance variable in a <code>variableSubclass</code>. 
+The first parameter must be a structure declared as described in
+<a href="Object-representation.html#Object-representation">Object representation</a>). 
+</p></blockquote></div>
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> IS_NIL and IS_CLASS have been removed because
+  they are problematic in shared libraries (modules), where they
+  caused undefined symbols to be present in the shared library.  These
+  are now private to <samp><span class="file">libgst.a</span></samp>.  You should use the <code>nilOOP</code>
+  field of the interpreter proxy, or <code>getObjectClass</code>.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

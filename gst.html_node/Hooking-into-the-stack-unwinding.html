@@ -1,0 +1,89 @@
+<html lang="en">
+<head>
+<title>Hooking into the stack unwinding - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Exception-handling.html#Exception-handling" title="Exception handling">
+<link rel="prev" href="Creating-new-exception-classes.html#Creating-new-exception-classes" title="Creating new exception classes">
+<link rel="next" href="Handler-stack-unwinding-caveat.html#Handler-stack-unwinding-caveat" title="Handler stack unwinding caveat">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Hooking-into-the-stack-unwinding"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Handler-stack-unwinding-caveat.html#Handler-stack-unwinding-caveat">Handler stack unwinding caveat</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Creating-new-exception-classes.html#Creating-new-exception-classes">Creating new exception classes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Exception-handling.html#Exception-handling">Exception handling</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.11.6 Hooking into the stack unwinding</h4>
+
+<p>More often useful than even <code>#on:do:</code> is <code>#ensure:</code>, which
+guarantees that some code is executed when the stack unwinds, whether
+because of normal execution or because of a signalled exception.
+
+   <p>Here is an example of use of <code>#ensure:</code> and a situation where the
+stack can unwind even without a signal:
+
+<pre class="example">     Object subclass: ExecuteWithBreak [
+       | breakBlock |
+     
+       break: anObject [
+         breakBlock value: anObject
+       ]
+     
+       valueWithBreak: aBlock [
+         "Sets up breakBlock before entering the block,
+          and passes self to the block."
+         | oldBreakBlock |
+         oldBreakBlock := breakBlock.
+         ^[breakBlock := [:arg | ^arg].
+           aBlock value]
+             ensure: [breakBlock := oldBreakBlock]
+       ]
+     ]
+</pre>
+   <p>This class provides a way to stop the execution of a block without
+exiting the whole method as using <code>^</code> inside a block would do. 
+The use of #ensure: guarantees (hence the name "ensure") that even
+if <code>breakBlock</code> is invoked or an error is handled by unwinding,
+the old &ldquo;break block&rdquo; will be restored.
+
+   <p>The definition of <code>breakBlock</code> is extremely simply; it is an
+example of the general unwinding feature of blocks, that you have
+probably already used:
+
+<pre class="example">            (history includesKey: num)
+                ifTrue: [ ^self error: 'Duplicate check number' ].
+</pre>
+   <p>You have probably been using #ensure: without knowing.  For example,
+<code>File&gt;&gt;#withReadStreamDo:</code> uses it to ensure that the file is
+closed when leaving the block.
+
+   </body></html>
+

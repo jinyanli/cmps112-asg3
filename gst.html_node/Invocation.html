@@ -1,0 +1,204 @@
+<html lang="en">
+<head>
+<title>Invocation - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Using-GNU-Smalltalk.html#Using-GNU-Smalltalk" title="Using GNU Smalltalk">
+<link rel="next" href="Operation.html#Operation" title="Operation">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Invocation"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Operation.html#Operation">Operation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Using-GNU-Smalltalk.html#Using-GNU-Smalltalk">Using GNU Smalltalk</a>
+<hr>
+</div>
+
+<h3 class="section">1.1 Command line arguments</h3>
+
+<p>The <span class="sc">gnu</span> Smalltalk virtual machine may be invoked via the following command:
+<pre class="example">     gst [ flags ... ] [ file ... ]
+</pre>
+   <p>When you invoke <span class="sc">gnu</span> Smalltalk, it will ensure that the binary image file
+(called <samp><span class="file">gst.im</span></samp>) is up to date; if not, it will build a new one as
+described in <a href="Loading-or-creating-an-image.html#Loading-or-creating-an-image">Loading an image or creating a new one</a>.  Your first invocation should look something like
+this:
+
+<pre class="display">     "Global garbage collection... done"
+     <span class="sc">gnu</span> Smalltalk ready
+     
+     st&gt;
+</pre>
+   <p>If you specify one or more <var>file</var>s, they will be read and executed
+in order, and Smalltalk will exit when end of file is reached.  If you
+don't specify <var>file</var>, <span class="sc">gnu</span> Smalltalk reads standard input, issuing a
+`<samp><span class="samp">st&gt;</span></samp>' prompt if the standard input is a terminal.  You may specify
+<samp><span class="option">-</span></samp> for the name of a file to invoke an explicit read from
+standard input.
+
+   <p><a name="index-saving-1"></a><a name="index-quitting-2"></a><a name="index-exiting-3"></a><a name="index-quit-4"></a><a name="index-snapshot-5"></a>To exit while at the `<samp><span class="samp">st&gt;</span></samp>' prompt, use <kbd>Ctrl-d</kbd>, or type
+<kbd>ObjectMemory quit</kbd> followed by &lt;RET&gt;.  Use <kbd>ObjectMemory
+snapshot</kbd> first to save a new image that you can reload later, if you
+wish.
+
+   <p>As is standard for <acronym>GNU</acronym>-style options, specifying <samp><span class="option">--</span></samp>
+stops the interpretation of options so that every argument that follows
+is considered a file name even if it begins with a `<samp><span class="samp">-</span></samp>'.
+
+   <p>You can specify both short and long flags; for example, <samp><span class="option">--version</span></samp>
+is exactly the same as <samp><span class="option">-v</span></samp>, but is easier to remember.  Short
+flags may be specified one at a time, or in a group.  A short flag or a
+group of short flags always starts off with a single dash to indicate
+that what follows is a flag or set of flags instead of a file name; a
+long flag starts off with two consecutive dashes, without spaces between
+them.
+
+   <p>In the current implementation the flags can be intermixed with file
+names, but their effect is as if they were all specified first.  The
+various flags are interpreted as follows:
+
+     <dl>
+<dt><samp><span class="option">-a</span></samp><dt><samp><span class="option">--smalltalk-args</span></samp><dd><a name="index-arguments-6"></a>Treat all options afterward as arguments to be given to Smalltalk code
+retrievable with <code>Smalltalk arguments</code>, ignoring them as arguments
+to <span class="sc">gnu</span> Smalltalk itself.
+
+     <p>Examples:
+     <p><table summary=""><tr align="left"><td valign="top">command line
+</td><td valign="top">Options seen by <span class="sc">gnu</span> Smalltalk
+</td><td valign="top"><code>Smalltalk arguments</code>
+<br></td></tr><tr align="left"><td valign="top">(empty)
+  </td><td valign="top">(none)
+  </td><td valign="top"><code>#()</code>
+<br></td></tr><tr align="left"><td valign="top"><samp><span class="option">-Via foo bar</span></samp>
+  </td><td valign="top"><samp><span class="option">-Vi</span></samp>
+  </td><td valign="top"><code>#('foo' 'bar')</code>
+<br></td></tr><tr align="left"><td valign="top"><samp><span class="option">-Vai test</span></samp>
+  </td><td valign="top"><samp><span class="option">-Vi</span></samp>
+  </td><td valign="top"><code>#('test')</code>
+<br></td></tr><tr align="left"><td valign="top"><samp><span class="option">-Vaq</span></samp>
+  </td><td valign="top"><samp><span class="option">-Vq</span></samp>
+  </td><td valign="top"><code>#()</code>
+<br></td></tr><tr align="left"><td valign="top"><samp><span class="option">--verbose -aq -c  </span></samp>
+  </td><td valign="top"><samp><span class="option">--verbose -q</span></samp>
+  </td><td valign="top"><code>#('-c')</code>
+     <br></td></tr></table>
+
+     <br><dt><samp><span class="option">-c</span></samp><dt><samp><span class="option">--core-dump</span></samp><dd>When a fatal signal occurs, produce a core dump before terminating. 
+Without this option, only a backtrace is provided.
+
+     <br><dt><samp><span class="option">-D</span></samp><dt><samp><span class="option">--declaration-trace</span></samp><dd>Print the class name, the method name, and the byte codes that the
+compiler generates as it compiles methods.  Only applies to files that
+are named explicitly on the command line, unless the flag is given
+multiple times on the command line.
+
+     <br><dt><samp><span class="option">-E</span></samp><dt><samp><span class="option">--execution-trace</span></samp><dd>Print the byte codes being executed as the interpreter operates.  Only
+works for statements explicitly issued by the user (either interactively
+or from files given on the command line), unless the flag is given
+multiple times on the command line.
+
+     <br><dt><samp><span class="option">--kernel-directory</span></samp><dd>Specify the directory from which the kernel source files will be loaded. 
+This is used mostly while compiling <span class="sc">gnu</span> Smalltalk itself.  Smalltalk code can
+retrieve this information with <code>Directory kernel</code>.
+
+     <br><dt><samp><span class="option">--no-user-files</span></samp><dd>Don't load any files from <samp><span class="file">~/.st/</span></samp> (see <a href="Loading-or-creating-an-image.html#Loading-or-creating-an-image">Loading an image or creating a new one</a>).<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+This is used mostly while compiling <span class="sc">gnu</span> Smalltalk itself, to ensure that the
+installed image is built only from files in the source tree.
+
+     <br><dt><samp><span class="option">-K </span><var>file</var></samp><dt><samp><span class="option">--kernel-file </span><var>file</var></samp><dd>Load <var>file</var> in the usual way, but look for it relative to the kernel
+directory's parent directory, which is usually
+<samp><span class="file">/usr/local/share/smalltalk/</span></samp>.  See <samp><span class="option">--kernel-dir</span></samp> above.
+
+     <p><a name="index-shell-scripts-7"></a><br><dt><samp><span class="option">-f</span></samp><dt><samp><span class="option">--file</span></samp><dd>The following two command lines are equivalent:
+
+     <pre class="example">          gst -f <var>file</var> <samp><span class="file">args...</span></samp>
+          gst -q <var>file</var> -a <samp><span class="file">args...</span></samp>
+     </pre>
+     <p>This is meant to be used in the so called &ldquo;sharp-bang&rdquo; sequence at the
+beginning of a file, as in
+
+     <pre class="example">          #! /usr/bin/gst -f
+          
+          <i>... Smalltalk source code ...</i>
+     </pre>
+     <p><span class="sc">gnu</span> Smalltalk treats the first line as a comment, and the <samp><span class="option">-f</span></samp> option
+ensures that the arguments are passed properly to the script.  Use this
+instead to avoid hard-coding the path to <samp><span class="command">gst</span></samp>:<a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>
+
+     <pre class="example">          #! /bin/sh
+          "exec" "gst" "-f" "$0" "$@"
+          
+          <i>... Smalltalk source code ...</i>
+     </pre>
+     <br><dt><samp><span class="option">-g</span></samp><dt><samp><span class="option">--no-gc-messages</span></samp><dd>Suppress garbage collection messages.
+
+     <br><dt><samp><span class="option">-h</span></samp><dt><samp><span class="option">--help</span></samp><dd>Print out a brief summary of the command line syntax of <span class="sc">gnu</span> Smalltalk,
+including the definitions of all of the option flags, and then exit.
+
+     <br><dt><samp><span class="option">-i</span></samp><dt><samp><span class="option">--rebuild-image</span></samp><dd>Always build and save a new image file; see <a href="Loading-or-creating-an-image.html#Loading-or-creating-an-image">Loading an image or creating a new one</a>.
+
+     <br><dt><samp><span class="option">--maybe-rebuild-image</span></samp><dd>Perform the image checks and rebuild as described in <a href="Loading-or-creating-an-image.html#Loading-or-creating-an-image">Loading an image or creating a new one</a>.  This is
+the default when <samp><span class="option">-I</span></samp> is not given.
+
+     <p><a name="index-image-path-8"></a><br><dt><samp><span class="option">-I </span><var>file</var></samp><dt><samp><span class="option">--image-file </span><var>file</var></samp><dd>Use the image file named <var>file</var> as the image file to load instead of
+the default location, and set <var>file</var>'s directory part as the image
+path.  This option completely bypasses checking the file dates on the
+kernel files; use <samp><span class="option">--maybe-rebuild-image</span></samp> to restore the usual
+behavior, writing the newly built image to <var>file</var> if needed.
+
+     <br><dt><samp><span class="option">-q</span></samp><dt><samp><span class="option">--quiet</span></samp><dt><samp><span class="option">--silent</span></samp><dd>Suppress the printing of answered values from top-level expressions
+while <span class="sc">gnu</span> Smalltalk runs.
+
+     <br><dt><samp><span class="option">-r</span></samp><dt><samp><span class="option">--regression-test</span></samp><dd>This is used by the regression testing system and is probably not of
+interest to the general user.  It controls printing of certain
+information.
+
+     <br><dt><samp><span class="option">-S</span></samp><dt><samp><span class="option">--snapshot</span></samp><dd>Save the image after loading files from the command line.  Of course
+this &ldquo;snapshot&rdquo; is not saved if you include - (stdin) on the command
+line and exit by typing <kbd>Ctrl-c</kbd>.
+
+     <br><dt><samp><span class="option">-v</span></samp><dt><samp><span class="option">--version</span></samp><dd>Print out the <span class="sc">gnu</span> Smalltalk version number, then exit.
+
+     <br><dt><samp><span class="option">-V</span></samp><dt><samp><span class="option">--verbose</span></samp><dd>Print various diagnostic messages while executing (the name of each file
+as it's loaded, plus messages about the beginning of execution or how
+many byte codes were executed). 
+</dl>
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> The directory
+would be called <samp><span class="file">_st/</span></samp> under MS-DOS.  Under OSes that don't use
+home directories, it would be looked for in the current directory.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> The
+words in the shell command <samp><span class="command">exec</span></samp> are all quoted, so GNU
+Smalltalk parses them as five separate comments.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

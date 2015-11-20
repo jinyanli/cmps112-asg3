@@ -1,0 +1,95 @@
+<html lang="en">
+<head>
+<title>What happened - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Getting-started.html#Getting-started" title="Getting started">
+<link rel="prev" href="Saying-hello.html#Saying-hello" title="Saying hello">
+<link rel="next" href="Doing-math.html#Doing-math" title="Doing math">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="What-happened"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Doing-math.html#Doing-math">Doing math</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Saying-hello.html#Saying-hello">Saying hello</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Getting-started.html#Getting-started">Getting started</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.1.3 What actually happened</h4>
+
+<p>The front-line Smalltalk interpreter gathers all text
+until a '!' character and executes it.  So the actual
+Smalltalk code executed was:
+<pre class="example">        'Hello, world' printNl
+</pre>
+   <p>This code does two things.  First, it creates an object of
+type <code>String</code> which contains the characters &ldquo;Hello, world&rdquo;. 
+Second, it sends the message named <code>printNl</code> to the object. 
+When the object is done processing the message, the code is
+done and we get our prompt back. 
+You'll notice that we didn't say anything about printing
+ing the string, even though that's in fact what happened. 
+This was very much on purpose: the code we typed in doesn't
+know anything about printing strings.  It knew how to get a
+string object, and it knew how to send a message to that
+object.  That's the end of the story for the code we wrote.
+
+   <p>But for fun, let's take a look at what happened when the
+string object received the <code>printNl</code> message.  The string object
+then went to a table <a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+which lists the messages which strings can receive, and what code to
+execute.  It found that there is indeed an entry for
+<code>printNl</code> in that table and ran this code.  This code then walked through
+its characters, printing each of them out to the terminal.  <a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>
+
+   <p>The central point is that an object is entirely self-contained;
+only the object knew how to print itself out.  When we want an
+object to print out, we ask the object itself to do the printing.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> Which table?  This is determined by the type
+of the object.  An object has a type, known as the
+class to which it belongs.  Each class has a table
+of methods.  For the object we created, it is
+known as a member of the <code>String</code> class.  So we go
+to the table associated with the String class.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> 
+Actually, the message <code>printNl</code> was inherited
+from Object.  It sent a <code>print</code> message, also
+inherited by Object, which then sent <code>printOn:</code> to
+the object, specifying that it print to the <code>Transcript</code>
+object.  The String class then prints its characters to the
+standard output.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

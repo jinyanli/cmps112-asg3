@@ -1,0 +1,232 @@
+<html lang="en">
+<head>
+<title>Locales - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Packages.html#Packages" title="Packages">
+<link rel="prev" href="Database.html#Database" title="Database">
+<link rel="next" href="Seaside.html#Seaside" title="Seaside">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Locales"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Seaside.html#Seaside">Seaside</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Database.html#Database">Database</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Packages.html#Packages">Packages</a>
+<hr>
+</div>
+
+<h3 class="section">3.4 Internationalization and localization support</h3>
+
+<p>Different countries and cultures have varying conventions for how to
+communicate.  These conventions range from very simple ones, such as the
+format for representing dates and times, to very complex ones, such as
+the language spoken.  Provided the programs are written to obey the
+choice of conventions, they will follow the conventions preferred by the
+user.  <span class="sc">gnu</span> Smalltalk provides two packages to ease you in doing so. 
+The <code>I18N</code> package covers both <dfn>internationalization</dfn> and
+<dfn>multilingualization</dfn>; the lighter-weight <code>Iconv</code> package
+covers only the latter, as it is a prerequisite for correct
+internationalization.
+
+   <p><dfn>Multilingualizing</dfn> software means programming it to be able to
+support languages from every part of the world.  In particular, it
+includes understanding multi-byte character sets (such as UTF-8)
+and Unicode characters whose <dfn>code point</dfn> (the equivalent of the
+ASCII value) is above 127.  To this end, <span class="sc">gnu</span> Smalltalk provides the
+<code>UnicodeString</code> class that stores its data as 32-bit Unicode
+values.  In addition, <code>Character</code> will provide support for
+all the over one million available code points in Unicode.
+
+   <p>Loading the <code>I18N</code> package improves this support through
+the <code>EncodedStream</code> class<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>, which interprets and transcodes
+non-ASCII Unicode characters.  This support is mostly transparent,
+because the base classes <code>Character</code>, <code>UnicodeCharacter</code>
+and <code>UnicodeString</code> are enhanced to use it.  Sending <code>asString</code>
+or <code>printString</code> to an instance of <code>Character</code> and
+<code>UnicodeString</code> will convert Unicode characters so that they
+are printed correctly in the current locale.  For example,
+`<samp><span class="samp">$&lt;279&gt; printNl</span></samp>' will print a small Latin letter `<samp><span class="samp">e</span></samp>' with
+a dot above, when the <code>I18N</code> package is loaded.
+
+   <p>Dually, you can convert <code>String</code> or <code>ByteArray</code> objects to
+Unicode with a single method call.  If the current locale's encoding is
+UTF-8, `<samp><span class="samp">#[196 151] asUnicodeString</span></samp>' will return a Unicode string
+with the same character as above, the small Latin letter `<samp><span class="samp">e</span></samp>' with
+a dot above.
+
+   <p>The implementation of multilingualization support is not yet
+complete.  For example, methods such as <code>asLowercase</code>,
+<code>asUppercase</code>, <code>isLetter</code> do not yet recognize Unicode
+characters.
+
+   <p>You need to exercise some care, or your program will be buggy when
+Unicode characters are used.  In particular, Characters must
+<strong>not</strong> be compared with <code>==</code><a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a> and should
+be printed on a Stream with <code>display:</code> rather than
+<code>nextPut:</code>.
+
+   <p>Also, Characters need to be created with
+the class method <code>codePoint:</code> if you are referring to their
+Unicode value; <code>codePoint:</code> is also the only method to create
+characters that is accepted by the ANSI Standard for Smalltalk. 
+The method <code>value:</code>, instead, should be used if you are referring
+to a byte in a particular encoding.  This subtle difference means
+that, for example, the last two of the following examples will fail:
+
+<pre class="example">         "Correct.  Use #value: with Strings, #codePoint: with UnicodeString."
+         String with: (Character value: 65)
+         String with: (Character value: 128)
+         UnicodeString with: (Character codePoint: 65)
+         UnicodeString with: (Character codePoint: 128)
+     
+         "Correct.  Only works for characters in the 0-127 range, which may
+          be considered as defensive programming."
+         String with: (Character codePoint: 65)
+     
+         "Dubious, and only works for characters in the 0-127 range.  With
+          UnicodeString, probably you always want #codePoint:."
+         UnicodeString with: (Character value: 65)
+     
+         "Fails, we try to use a high character in a String"
+         String with: (Character codePoint: 128)
+     
+         "Fails, we try to use an encoding in a Unicode string"
+         UnicodeString with: (Character value: 128)
+</pre>
+   <p><dfn>Internationalizing</dfn> software, instead, means programming it to be able to
+adapt to the user's favorite conventions.  These conventions can get
+pretty complex; for example, the user might specify the locale
+`espana-castellano' for most purposes, but specify the locale
+`usa-english' for currency formatting: this might make sense if the user
+is a Spanish-speaking American, working in Spanish, but representing
+monetary amounts in US dollars.  You can see that this system is simple
+but, at the same time, very complete.  This manual, however, is not the
+right place for a thorough discussion of how an user would set up his
+system for these conventions; for more information, refer to your
+operating system's manual or to the <span class="sc">gnu</span> C library's manual.
+
+   <p><span class="sc">gnu</span> Smalltalk inherits from <span class="sc">iso</span> C the concept of a <dfn>locale</dfn>, that is, a
+collection of conventions, one convention for each purpose, and maps each of
+these purposes to a Smalltalk class defined by the <code>I18N</code> package, and
+these classes form a small hierarchy with class <code>Locale</code> as its roots:
+
+     <ul>
+
+     <li><code>LcNumeric</code> formats numbers; <code>LcMonetary</code> and <code>LcMonetaryISO</code>
+format currency amounts.
+
+     <li><code>LcTime</code> formats dates and times.
+
+     <li><code>LcMessages</code> translates your program's output.  Of course, the
+package can't automatically translate your program's output messages
+into other languages; the only way you can support output in the user's
+favorite language is to translate these messages by hand.  The package
+does, though, provide methods to easily handle translations into
+multiple languages. 
+</ul>
+
+   <p>Basic usage of the <code>I18N</code> package involves a single selector, the
+question mark (<code>?</code>), which is a rarely used yet valid character for
+a Smalltalk binary message.  The meaning of the question mark selector
+is &ldquo;How do you say <small class="dots">...</small> under your convention?&rdquo;.  You can send
+<code>?</code> to either a specific instance of a subclass of <code>Locale</code>,
+or to the class itself; in this case, rules for the default locale
+(which is specified via environment variables) apply.  You might say,
+for example, <code>LcTime ? Date today</code> or, for example,
+<code>germanMonetaryLocale ? account balance</code>.  This syntax can be at
+first confusing, but turns out to be convenient because of its
+consistency and overall simplicity.
+
+   <p>Here is how <code>?</code> works for different classes:
+
+<div class="defun">
+&mdash; Method on LcTime: <b>?</b><var> aString<a name="index-g_t_003f-on-LcTime-33"></a></var><br>
+<blockquote><p>Format a date, a time or a timestamp (<code>DateTime</code>
+object). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on LcNumber: <b>?</b><var> aString<a name="index-g_t_003f-on-LcNumber-34"></a></var><br>
+<blockquote><p>Format a number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on LcMonetary: <b>?</b><var> aString<a name="index-g_t_003f-on-LcMonetary-35"></a></var><br>
+<blockquote><p>Format a monetary value together with its currency symbol. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on LcMonetaryISO: <b>?</b><var> aString<a name="index-g_t_003f-on-LcMonetaryISO-36"></a></var><br>
+<blockquote><p>Format a monetary value together with its <span class="sc">iso</span> currency symbol. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on LcMessages: <b>?</b><var> aString<a name="index-g_t_003f-on-LcMessages-37"></a></var><br>
+<blockquote><p>Answer an <code>LcMessagesDomain</code> that retrieves translations
+from the specified file. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method on LcMessagesDomain: <b>?</b><var> aString<a name="index-g_t_003f-on-LcMessagesDomain-38"></a></var><br>
+<blockquote><p>Retrieve the translation of the given string.<a rel="footnote" href="#fn-3" name="fnd-3"><sup>3</sup></a>
+</p></blockquote></div>
+
+   <p>These two packages provides much more functionality, including more
+advanced formatting options support for Unicode, and conversion to and
+from several character sets.  For more information, refer to
+<a href="../gst-libs/I18N.html#I18N">Multilingual and international support with Iconv and I18N</a>.
+
+   <p>As an aside, the representation of locales that the package uses is
+exactly the same as the C library, which has many advantages: the burden
+of mantaining locale data is removed from <span class="sc">gnu</span> Smalltalk's mantainers; the need
+of having two copies of the same data is removed from <span class="sc">gnu</span> Smalltalk's users;
+and finally, uniformity of the conventions assumed by different
+internationalized programs is guaranteed to the end user.
+
+   <p>In addition, the representation of translated strings is the standard
+<span class="sc">mo</span> file format adopted by the <span class="sc">gnu</span> <code>gettext</code> library.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> All
+    the classes mentioned in this section reside in the
+    <code>I18N</code> namespace.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> Character equality
+  with <code>=</code> will be as fast as with <code>==</code>.</p>
+
+   <p class="footnote"><small>[<a name="fn-3" href="#fnd-3">3</a>]</small> The <code>?</code> method
+   does not apply to the LcMessagesDomain class itself, but only to its
+   instances.  This is because LcMessagesDomain is not a subclass of
+   Locale.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

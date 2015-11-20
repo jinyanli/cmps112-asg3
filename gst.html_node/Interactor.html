@@ -1,0 +1,128 @@
+<html lang="en">
+<head>
+<title>Interactor - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Emacs.html#Emacs" title="Emacs">
+<link rel="prev" href="Editing.html#Editing" title="Editing">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Interactor"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Editing.html#Editing">Editing</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Emacs.html#Emacs">Emacs</a>
+<hr>
+</div>
+
+<h3 class="section">4.3 Smalltalk interactor mode</h3>
+
+<p>An interesting feature of Emacs Smalltalk is the Smalltalk interactor,
+which basically allows you run in <span class="sc">gnu</span> Emacs with Smalltalk files in one
+window, and Smalltalk in the other.  You can, with a single command, edit
+and change method definitions in the live Smalltalk system, evaluate
+expressions, make image snapshots of the system so you can pick up where
+you left off, file in an entire Smalltalk file, etc.  It makes a tremendous
+difference in the productivity and enjoyment that you'll have when using
+<span class="sc">gnu</span> Smalltalk.
+
+   <p>To start up the Smalltalk interactor, you must be running <span class="sc">gnu</span> Emacs
+and in a buffer that's in Smalltalk mode.  Then, if you type <kbd>C-c m</kbd>. 
+A second window will appear with <span class="sc">gnu</span> Smalltalk running in it.
+
+   <p>This window is in most respects like a Shell mode window.  You can type
+Smalltalk expressions to it directly and re-execute previous things
+in the window by moving the cursor back to the line that contains
+the expression that you wish to re-execute and typing return.
+
+   <p>Notice the status in the mode line (e.g. `<samp><span class="samp">starting-up</span></samp>',
+`<samp><span class="samp">idle</span></samp>', etc).  This status will change when you issue various
+commands from Smalltalk mode.
+
+   <p>When you first fire up the Smalltalk interactor, it puts you in the
+window in which Smalltalk is running.  You'll want to switch
+back to the window with your file in it to explore the rest of the
+interactor mode, so do it now.
+
+   <p>To execute a range of code, mark the region around and type
+<kbd>C-c e</kbd>.  The expression in the region is sent to Smalltalk
+and evaluated.  The status will change to indicate that the
+expression is executing.  This will work for any region that you
+create.  If the region does not end with an exclamation point (which is
+syntactically required by Smalltalk), one will be added for you.
+
+   <p>There is also a shortcut, <kbd>C-c d</kbd> (also invokeable as
+<kbd>M-x smalltalk-doit</kbd>), which uses a simple heuristic to
+figure out the start and end of the expression: it searches forward
+for a line that begins with an exclamation point, and backward for
+a line that does not begin with space, tab, or the comment
+character, and sends all the text in between to Smalltalk. 
+If you provide a prefix argument (by typing <kbd>C-u C-c d</kbd> for
+instance), it will bypass the heuristic and use the region instead
+(just like <kbd>C-c e</kbd> does).
+
+   <p><kbd>C-c c</kbd> will compile a method; it uses a similar heuristic to
+determine the bounds of the method definition.  Typically, you'll
+change a method definition, type <kbd>C-c c</kbd> and move on to
+whatever's next.  If you want to compile a whole bunch of method
+definitions, you'll have to mark the entire set of method
+definitions (from the <code>methodsFor:</code> line to the
+<code>! !</code>) as the region and use <kbd>C-c e</kbd>.
+
+   <p>After you've compiled and executed some expressions, you may want to
+take a snapshot of your work so that you don't have to re-do things
+next time you fire up Smalltalk.  To do this, you use the <kbd>C-c s</kbd>
+command, which invokes <code>ObjectMemory snapshot</code>. 
+If you invoke this command with a prefix argument, you can specify
+a different name for the image file, and you can have that image file
+loaded instead of the default one by using the <code>-I</code> flag on the
+command line when invoking Smalltalk.
+
+   <p>You can also evaluate an expression and have the result of the
+evaluation printed by using the <kbd>C-c p</kbd> command.  Mark the region
+and use the command.
+
+   <p>To file in an entire file (perhaps the one that you currently have in
+the buffer that you are working on), type <kbd>C-c f</kbd>.  You can type
+the name of a file to load at the prompt, or just type return and
+the file associated with the current buffer will be loaded into Smalltalk.
+
+   <p>When you're ready to quit using <span class="sc">gnu</span> Smalltalk, you can quit cleanly by using
+the <kbd>C-c q</kbd> command.  If you want to fire up Smalltalk again, or
+if (heaven forbid) Smalltalk dies on you, you can use the <kbd>C-c m</kbd>
+command, and Smalltalk will be reincarnated.  Even if it's running,
+but the Smalltalk window is not visible, <kbd>C-c m</kbd> will cause it
+to be displayed right away.
+
+   <p>You might notice that as you use this mode, the Smalltalk window will scroll
+to keep the bottom of the buffer in focus, even when the Smalltalk
+window is not the current window.  This was a design choice that I
+made to see how it would work.  On the whole, I guess I'm pretty happy
+with it, but I am interested in hearing your opinions on the subject.
+
+   </body></html>
+

@@ -1,0 +1,66 @@
+<html lang="en">
+<head>
+<title>Starting the system - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Operation.html#Operation" title="Operation">
+<link rel="prev" href="Loading-or-creating-an-image.html#Loading-or-creating-an-image" title="Loading or creating an image">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Starting-the-system"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Loading-or-creating-an-image.html#Loading-or-creating-an-image">Loading or creating an image</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Operation.html#Operation">Operation</a>
+<hr>
+</div>
+
+<h4 class="subsection">1.2.3 After the image is created or restored</h4>
+
+<!-- so it's not a "function"... it's an operation -->
+<p><a name="index-returnFromSnapshot-16"></a><a name="index-g_t_0040file_007binit_002est_007d-17"></a>Next, <span class="sc">gnu</span> Smalltalk sends the <code>returnFromSnapshot</code> event to the dependents
+of the special class <code>ObjectMemory</code> (see <a href="Memory-access.html#Memory-access">Memory access</a>). 
+Afterwards, it loads <samp><span class="file">~/.st/init.st</span></samp> if available.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+
+   <p><a name="index-startup_002c-customizing-18"></a><a name="index-customizing-startup-19"></a>You can remember the difference between <samp><span class="file">pre.st</span></samp> and <samp><span class="file">init.st</span></samp>
+by remembering that <samp><span class="file">pre.st</span></samp> is the <em>pre</em>-snapshot file and
+<samp><span class="file">init.st</span></samp> is the post-image-load <em>init</em>ialization file.
+
+   <p>Finally, <span class="sc">gnu</span> Smalltalk loads files listed on the command line, or prompts for
+input at the terminal, as described in <a href="Invocation.html#Invocation">Command line arguments</a>.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> The
+same considerations made above hold here too.  The file is called
+<samp><span class="file">_st/init.st</span></samp> under MS-DOS, and is looked for in the current
+directory under OSes that don't use home directories.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

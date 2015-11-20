@@ -1,0 +1,261 @@
+<html lang="en">
+<head>
+<title>GC - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Features.html#Features" title="Features">
+<link rel="prev" href="Memory-access.html#Memory-access" title="Memory access">
+<link rel="next" href="Security.html#Security" title="Security">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="GC"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Security.html#Security">Security</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Memory-access.html#Memory-access">Memory access</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Features.html#Features">Features</a>
+<hr>
+</div>
+
+<h3 class="section">2.9 Memory management in <span class="sc">gnu</span> Smalltalk</h3>
+
+<p>The <span class="sc">gnu</span> Smalltalk virtual machine is equipped with a garbage collector, a
+facility that reclaims the space occupied by objects that are no
+longer accessible from the system roots.  The collector is composed
+of several parts, each of which can be invoked by the virtual machine
+using various tunable strategies, or invoked manually by the programmer.
+
+   <p>These parts include a <dfn>generation scavenger</dfn>, a <dfn>mark &amp; sweep</dfn>
+collectory with an incremental sweep phase, and a <dfn>compactor</dfn>. 
+All these facilities work on different memory spaces and differs from
+the other in its scope, speed and disadvantages (which are hopefully
+balanced by the availability of different algorithms).  What follows
+is a description of these algorithms and of the memory spaces they
+work in.
+
+   <p><dfn>NewSpace</dfn> is the memory space where young objects live.  It is
+composed of three sub-spaces: an object-creation space (<dfn>Eden</dfn>)
+and two <dfn>SurvivorSpaces</dfn>. When an object is first created, it is
+placed in Eden. When Eden starts to fill up (i.e., when the number of
+used bytes in Eden exceeds the scavenge threshold), objects that are
+housed in Eden or in the occupied SurvivorSpace and that are still
+reachable from the system roots are copied to the unoccupied
+SurvivorSpace.  As an object survives different scavenging passes, it
+will be shuffled by the scavenger from the occupied SurvivorSpace to
+the unoccupied one.  When the number of used bytes in SurvivorSpace is
+high enough that the scavenge pause might be excessively long, the
+scavenger will move some of the older surviving objects from NewSpace
+to <dfn>OldSpace</dfn>.  In the garbage collection jargon, we say that such
+objects are being <dfn>tenured</dfn> to OldSpace.
+
+   <p>This garbage collection algorithm is designed to reclaim short-lived
+objects, that is those objects that expire while residing in NewSpace,
+and to decide when enough data is residing in NewSpace that it is
+useful to move some of it in OldSpace.  A <dfn>copying</dfn> garbage
+collector is particularly efficient in an object population whose
+members are more likely to die than survive, because this kind of
+scavenger spends most of its time copying survivors, who will be few
+in number in such populations, rather than tracing corpses, who will
+be many in number.  This fact makes copying collection especially
+well suited to NewSpace, where a percentage of 90% or more objects
+often fails to survive across a single scavenge.
+
+   <p>The particular structure of NewSpace has many advantages.  On one
+hand, having a large Eden and two small SurvivorSpaces has a smaller
+memory footprint than having two equally big semi-spaces and
+allocating new objects directly from the occupied one (by default,
+<span class="sc">gnu</span> Smalltalk uses 420=300+60*2 kilobytes of memory, while a simpler
+configuration would use 720=360*2 kilobytes).  On the other hand, it
+makes tenuring decisions particularly simple: the copying order is
+such that short-lived objects tend to be copied last, while objects
+that are being referred from OldSpace tend to be copied first: this is
+because the tenuring strategy of the scavenger is simply to treat the
+destination SurvivorSpace as a circular buffer, tenuring objects with
+a First-In-First-Out policy.
+
+   <p>An object might become part of the scavenger root set for several
+reasons: objects that have been tenured are roots if their data lives
+in an OldSpace page that has been written to since the last scavenge
+(more on this later), plus all objects can be roots if they are known
+to be referenced from C code or from the Smalltalk stacks.
+
+   <p>In turn, some of the old objects can be made to live in a special
+area, called <dfn>FixedSpace</dfn>.  Objects that reside in FixedSpace are
+special in that their body is guaranteed to remain at a fixed address
+(in general, <span class="sc">gnu</span> Smalltalk only ensures that the header of the object remains
+at a fixed address in the Object Table).  Because the garbage
+collector can and does move objects, passing objects to foreign code
+which uses the object's address as a fixed key, or which uses a
+ByteArray as a buffer, presents difficulties.  One can use
+<code>CObject</code> to manipulate C data on the <code>malloc</code> heap, which
+indeed does not move, but this can be tedious and requires the same
+attentions to avoid memory leaks as coding in C.  FixedSpace provides
+a much more convenient mechanism: once an object is deemed fixed, the
+object's body will never move through-out its life-time; the space it
+occupies will however still be returned automatically to the
+FixedSpace pool when the object is garbage collected.  Note that
+because objects in FixedSpace cannot move, FixedSpace cannot be
+compacted and can therefore suffer from extensive fragmentation.  For
+this reason, FixedSpace should be used carefully.  FixedSpace however
+is rebuilt (of course) every time an image is brought up, so a kind of
+compaction of FixedSpace can be achieved by saving a snapshot,
+quitting, and then restarting the newly saved image.
+
+   <p>Memory for OldSpace and FixedSpace is allocated using a variation of
+the system allocator <code>malloc</code>: in fact, <span class="sc">gnu</span> Smalltalk uses the same
+allocator for its own internal needs, for OldSpace and for FixedSpace,
+but it ensures that a given memory page never hosts objects that
+reside in separate spaces.  New pages are mapped into the address
+space as needed and devoted to OldSpace or FixedSpace segments;
+similarly, when unused they may be subsequently unmapped, or they
+might be left in place waiting to be reused by <code>malloc</code> or
+by another Smalltalk data space.
+
+   <p>Garbage that is created among old objects is taken care of by a mark &amp;
+sweep collector which, unlike the scavenger which only reclaims
+objects in NewSpace, can only reclaim objects in OldSpace.  Note that
+as objects are allocated, they will not only use the space that was
+previously occupied in the Eden by objects that have survived, but
+they will also reuse the entries in the global Object Table that have
+been freed by object that the scavenger could reclaim.  This quest for
+free object table entries can be combined with the sweep phase of the
+OldSpace collector, which can then be done incrementally, limiting the
+disruptive part of OldSpace garbage collection to the mark phase.
+
+   <p>Several runs of the mark &amp; sweep collector can lead to fragmentation
+(where objects are allocated from several pages, and then become
+garbage in an order such that a bunch of objects remain in each page
+and the system is not able to recycle them).  For this reason, the
+system periodically tries to compact OldSpace.  It does so simply by
+looping through every old object and copying it into a new OldSpace. 
+Since the OldSpace allocator does not suffer from fragmentation until
+objects start to be freed nor after all objects are freed, at the end
+of the copy all the pages in the fragmented OldSpace will have been
+returned to the system (some of them might already have been used by
+the compacted OldSpace), and the new, compacted OldSpace is ready to
+be used as the system oldspace.  Growing the object heap (which is
+done when it is found to be quite full even after a mark &amp; sweep
+collection) automatically triggers a compaction.
+
+   <p>You can run the compactor without marking live objects.  Since the
+amount of garbage in OldSpace is usually quite limited, the overhead
+incurred by copying potentially dead objects is small enough that the
+compactor still runs considerably faster than a full garbage
+collection, and can still give the application some breathing room.
+
+   <p>Keeping OldSpace and FixedSpace in the same heap would then make
+compaction of OldSpace (whereby it is rebuilt from time to time in
+order to limit fragmentation) much less effective.  Also, the
+<code>malloc</code> heap is not used for FixedSpace objects because <span class="sc">gnu</span> Smalltalk
+needs to track writes to OldSpace and FixedSpace in order to support
+efficient scavenging of young objects.
+
+   <p>To do so, the grey page table<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+contains one entry for each page in OldSpace or FixedSpace that is
+thought to contain at least a reference to an object housed in
+NewSpace.  Every page in OldSpace is created as grey, and is considered
+grey until a scavenging pass finds out that it actually does not contain
+pointers to NewSpace.  Then the page is recolored black<a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>,
+and will stay black until it is written to or another object is
+allocated in it (either a new fixed object, or a young object being
+tenured).  The grey page table is expanded and shrunk as needed by the
+virtual machine.
+
+   <p>Drawing an histogram of object sizes shows that there are only a few
+sources of large objects on average (i.e., objects greater than a page
+in size), but that enough of these objects are created dynamically
+that they must be handled specially.  Such objects should not be
+allocated in NewSpace along with ordinary objects, since they would
+fill up NewSpace prematurely (or might not even fit in it), thus
+accelerating the scavenging rate, reducing performance and resulting
+in an increase in tenured garbage.  Even though this is not an optimal
+solution because it effectively tenures these objects at the time they
+are created, a benefit can be obtained by allocating these objects
+directly in FixedSpace.  The reason why FixedSpace is used is that
+these objects are big enough that they don't result in
+fragmentation<a rel="footnote" href="#fn-3" name="fnd-3"><sup>3</sup></a>; and using
+FixedSpace instead of OldSpace avoids that the compactor copies them
+because this would not provide any benefit in terms of reduced
+fragmentation.
+
+   <p>Smalltalk activation records are allocated from another special heap,
+the context pool.  This is because it is often the case that they
+can be deallocated in a Last-In-First-Out (stack) fashion, thereby
+saving the work needed to allocate entries in the object table for them,
+and quickly reusing the memory that they use.  When the activation record
+is accessed by Smalltalk, however, the activation record must be turned
+into a first-class <code>OOP</code><a rel="footnote" href="#fn-4" name="fnd-4"><sup>4</sup></a>.  Since even these objects are usually very
+short-lived, the data is however not copied to the Eden: the eviction
+of the object bodies from the context pool is delayed to the next
+scavenging, which will also empty the context pool just like it
+empties Eden.  If few objects are allocated and the context pool turns
+full before the Eden, a scavenging is also triggered; this is however
+quite rare.
+
+   <p>Optionally, <span class="sc">gnu</span> Smalltalk can avoid the overhead of interpretation by
+executing a given Smalltalk method only after that method has been
+compiled into the underlying microprocessor's machine code. This
+machine-code generation is performed automatically, and the resulting
+machine code is then placed in <code>malloc</code>-managed memory.  Once
+executed, a method's machine code is left there for subsequent
+execution.  However, since it would require way too much memory to
+permanently house the machine-code version of every Smalltalk method,
+methods might be compiled more than once: when a translation is not
+used at the time that two garbage collection actions are taken
+(scavenges and global garbage collections count equally), the
+incremental sweeper discards it, so that it will be recomputed if and
+when necessary.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> The denomination <dfn>grey</dfn>
+comes from the lexicon of <dfn>tri-color marking</dfn>, which is an
+  abstraction of every possible garbage collection algorithm: in
+  tri-color marking, grey objects are those that are known to be
+  reachable or that we are not interested in reclaiming, yet have not
+  been scanned yet to mark the objects that they refer to as reachable.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> Black
+  objects are those that are known to be reachable or that we are not
+  interested in reclaiming, and are known to have references only to
+  other black or grey objects (in case you're curious, the tri-color
+  marking algorithm goes on like this: object not yet known to be
+  reachable are white, and when all objects are either black or white,
+  the white ones are garbage).</p>
+
+   <p class="footnote"><small>[<a name="fn-3" href="#fnd-3">3</a>]</small> Remember that free pages are shared among the
+  three heaps, that is, OldSpace, FixedSpace and the <code>malloc</code>
+  heap.  When a large object is freed, the memory that it used can be
+  reused by <code>malloc</code> or by OldSpace allocation</p>
+
+   <p class="footnote"><small>[<a name="fn-4" href="#fnd-4">4</a>]</small> This is short for <dfn>Ordinary
+  Object Pointer</dfn>.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

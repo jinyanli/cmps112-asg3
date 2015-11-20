@@ -1,0 +1,126 @@
+<html lang="en">
+<head>
+<title>Exception handling - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Tutorial.html#Tutorial" title="Tutorial">
+<link rel="prev" href="Streams.html#Streams" title="Streams">
+<link rel="next" href="Behind-the-scenes.html#Behind-the-scenes" title="Behind the scenes">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Exception-handling"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Behind-the-scenes.html#Behind-the-scenes">Behind the scenes</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Streams.html#Streams">Streams</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Tutorial.html#Tutorial">Tutorial</a>
+<hr>
+</div>
+
+<h3 class="section">6.11 Exception handling in Smalltalk</h3>
+
+<p>Up to this point of the tutorial, you used the original Smalltalk-80
+error signalling mechanism:
+
+<pre class="example">        check: num [
+            | c |
+            c := history
+                at: num
+                ifAbsent: [ ^self error: 'No such check #' ].
+            ^c
+        ]
+</pre>
+   <p>In the above code, if a matching check number is found, the method will
+answer the object associated to it.  If no prefix is found, Smalltalk
+will unwind the stack and print an error message including the message
+you gave and stack information.
+
+<pre class="example">     CheckingAccount new: 31 "&lt;0x33788&gt;" error: No such check #
+     <span class="roman">...blah blah...</span>
+     CheckingAccount&gt;&gt;#error:
+     [] in Dictionary&gt;&gt;#at:ifAbsent:
+     Dictionary(HashedCollection)&gt;&gt;#findIndex:ifAbsent:
+     Dictionary&gt;&gt;#at:ifAbsent:
+     [] in CheckingAccount&gt;&gt;#check:
+     CheckingAccount&gt;&gt;#check:
+     UndefinedObject(Object)&gt;&gt;#executeStatements
+</pre>
+   <p>Above we see the object that received the #error: message, the message
+text itself, and the frames (innermost-first) running when the error was
+captured by the system.  In addition, the rest of the code in methods
+like <code>CheckingAccount&gt;&gt;#check:</code> was not executed.
+
+   <p>So simple error reporting gives us most of the features we want:
+
+     <ul>
+<li>Execution stops immediately, preventing programs from continuing as if
+nothing is wrong.
+
+     <li>The failing code provides a more-or-less useful error message.
+
+     <li>Basic system state information is provided for diagnosis.
+
+     <li>A debugger can drill further into the state, providing information like
+details of the receivers and arguments on the stack. 
+</ul>
+
+   <p>However, there is a more powerful and complex error handling mechanism,
+that is <dfn>exception</dfn>.  They are like "exceptions" in other programming
+languages, but are more powerful and do not always indicate error
+conditions.  Even though we use the term "signal" often with regard
+to them, do not confuse them with the signals like <code>SIGTERM</code> and
+<code>SIGINT</code> provided by some operating systems; they are a different
+concept altogether.
+
+   <p>Deciding to use exceptions instead of <code>#error:</code> is a matter of
+aesthetics, but you can use a simple rule: use exceptions only if you want
+to provide callers with a way to recover sensibly from certain errors,
+and then only for signalling those particular errors.
+
+   <p>For example, if you are writing a word processor, you might provide the
+user with a way to make regions of text read-only.  Then, if the user
+tries to edit the text, the objects that model the read-only text can
+signal a <code>ReadOnlyText</code> or other kind of exception, whereupon the
+user interface code can stop the exception from unwinding and report
+the error to the user.
+
+   <p>When in doubt about whether exceptions would be useful, err on the side
+of simplicity; use <code>#error:</code> instead.  It is much easier to convert an
+#error: to an explicit exception than to do the opposite.
+
+<ul class="menu">
+<li><a accesskey="1" href="Creating-exceptions.html#Creating-exceptions">Creating exceptions</a>:                 Starting to use the mechanism
+<li><a accesskey="2" href="Raising-exceptions.html#Raising-exceptions">Raising exceptions</a>:                  What to do when exceptional events happen
+<li><a accesskey="3" href="Handling-exceptions.html#Handling-exceptions">Handling exceptions</a>:                 The other side
+<li><a accesskey="4" href="When-an-exception-isn_0027t-handled.html#When-an-exception-isn_0027t-handled">When an exception isn't handled</a>:     Default actions
+<li><a accesskey="5" href="Creating-new-exception-classes.html#Creating-new-exception-classes">Creating new exception classes</a>:      Your own exceptions
+<li><a accesskey="6" href="Hooking-into-the-stack-unwinding.html#Hooking-into-the-stack-unwinding">Hooking into the stack unwinding</a>:    An alternative exception handling system
+<li><a accesskey="7" href="Handler-stack-unwinding-caveat.html#Handler-stack-unwinding-caveat">Handler stack unwinding caveat</a>:      Differences with other languages
+</ul>
+
+   </body></html>
+

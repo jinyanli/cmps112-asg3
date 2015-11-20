@@ -1,0 +1,149 @@
+<html lang="en">
+<head>
+<title>Playing with Arrays - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="More-subclassing.html#More-subclassing" title="More subclassing">
+<link rel="prev" href="The-existing-hierarchy.html#The-existing-hierarchy" title="The existing hierarchy">
+<link rel="next" href="New-kinds-of-Numbers.html#New-kinds-of-Numbers" title="New kinds of Numbers">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Playing-with-Arrays"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="New-kinds-of-Numbers.html#New-kinds-of-Numbers">New kinds of Numbers</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="The-existing-hierarchy.html#The-existing-hierarchy">The existing hierarchy</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="More-subclassing.html#More-subclassing">More subclassing</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.9.2 Playing with Arrays</h4>
+
+<p>Imagine that you need an array, but alas you need that if an index
+is out of bounds, it returns nil.  You could modify the Smalltalk
+implementation, but that might break some code in the image, so it
+is not practical.  Why not add a subclass?
+
+<pre class="example">        "We could subclass from Array, but that class is specifically
+         optimized by the VM (which assumes, among other things, that
+         it does not have any instance variables).  So we use its
+         abstract superclass instead.  The discussion below holds
+         equally well."
+        ArrayedCollection subclass: NiledArray [
+            &lt;shape: #pointer&gt;
+     
+            boundsCheck: index [
+                ^(index &lt; 1) | (index &gt; (self basicSize))
+            ]
+     
+            at: index [
+                ^(self boundsCheck: index)
+                    ifTrue: [ nil ]
+                    ifFalse: [ super at: index ]
+            ]
+     
+            at: index put: val [
+                ^(self boundsCheck: index)
+                    ifTrue: [ val ]
+                    ifFalse: [ super at: index put: val ]
+            ]
+        ]
+</pre>
+   <p>Much of the machinery of adding a class should be
+familiar.  We see another declaration like <code>comment:</code>,
+that is <code>shape:</code> message.  This sets up <code>NiledArray</code>
+to have the same underlying
+structure of an <code>Array</code> object; we'll delay discussing this
+until the chapter on the nuts and bolts of arrays.  In any
+case, we inherit all of the actual knowledge of how to create
+arrays, reference them, and so forth.  All that we do is
+intercept <code>at:</code> and <code>at:put:</code> messages, call our common
+function to validate the array index, and do something special
+if the index is not valid.  The way that we coded
+the bounds check bears a little examination.
+
+   <p>Making a first cut at coding the bounds check, you
+might have coded the bounds check in NiledArray's methods
+twice (once for <code>at:</code>, and again for <code>at:put:</code>.  As
+always, it's preferable to code things once, and then re-use them. 
+So we instead add a method for bounds checking <code>boundsCheck:</code>, and
+use it for both cases.  If we ever wanted to enhance the
+bounds checking (perhaps emit an error if the index is &lt; 1 and
+answer nil only for indices greater than the array size?), we only
+have to change it in one place.
+
+   <p>The actual math for calculating whether the bounds have
+been violated is a little interesting.  The first part of
+the expression returned by the method:
+<pre class="example">        (index &lt; 1) | (index &gt; (self basicSize))
+</pre>
+   <p class="noindent">is true if the index is less than 1, otherwise it's false. 
+This part of the expression thus becomes the boolean object
+true or false.  The boolean object then receives the message
+<code>|</code>, and the argument <code>(index &gt; (self basicSize))</code>. 
+<code>|</code> means &ldquo;or&rdquo;&mdash;we want to OR together the two possible
+out-of-range checks.  What is the second part of the expression? 
+<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+
+   <p><code>index</code> is our argument, an integer; it receives the
+message <code>&gt;</code>, and thus will compare itself to the value
+<code>self basicSize</code> returns.  While we haven't covered the
+underlying structures Smalltalk uses to build arrays, we can
+briefly say that the <code>#basicSize</code> message returns the number
+of elements the Array object can contain.  So the index is checked
+to see if it's less than 1 (the lowest legal Array index) or
+greater than the highest allocated slot in the Array.  If it
+is either (the <code>|</code> operator!), the expression is true,
+otherwise false.
+
+   <p>From there it's downhill; our boolean object, returned by
+<code>boundsCheck:</code>, receives the <code>ifTrue:ifFalse:</code> message,
+and a code block which will do the appropriate thing.  Why do we
+have <code>at:put:</code> return val?  Well, because that's what it's
+supposed to do: look at every implementor of <code>at:put</code> or <code>at:</code>
+and you'll find that it returns its second parameter.  In general, the
+result is discarded; but one could write a program which uses it, so
+we'll write it this way anyway.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> Smalltalk also offers an <code>or:</code> message, which
+is different in a subtle way from <code>|</code>.  or: takes
+a code block, and only invokes the code block if
+it's necessary to determine the value of the
+expression.  This is analogous to the guaranteed C
+semantic that <code>||</code> evaluates left-to-right only as
+far as needed.  We could have written the expressions
+as <code>((index &lt; 1) or: [index &gt; (self basicSize)])</code>. 
+Since we expect both sides of or: to be
+false most of the time, there isn't much reason to
+delay evaluation of either side in this case.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

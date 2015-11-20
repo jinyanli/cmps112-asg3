@@ -1,0 +1,89 @@
+<html lang="en">
+<head>
+<title>Instance methods - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Creating-classes.html#Creating-classes" title="Creating classes">
+<link rel="prev" href="Defining-methods.html#Defining-methods" title="Defining methods">
+<link rel="next" href="A-look-at-our-object.html#A-look-at-our-object" title="A look at our object">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Instance-methods"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="A-look-at-our-object.html#A-look-at-our-object">A look at our object</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Defining-methods.html#Defining-methods">Defining methods</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Creating-classes.html#Creating-classes">Creating classes</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.4.4 Defining an instance method</h4>
+
+<p>We need to define the <code>init</code> method for our Account
+objects, so that our <code>new</code> method defined above will work. 
+Here's the Smalltalk code:
+<pre class="example">     Account extend [
+         init [
+             &lt;category: 'initialization'&gt;
+             balance := 0
+         ]
+     ]
+</pre>
+   <p>It looks quite a bit like the previous method definition,
+except that the first one said
+<code>Account class extend</code>, and ours says
+<code>Account extend</code>.
+
+   <p>The difference is that the first one defined a method for
+messages sent directly to <code>Account</code>, but the second one is
+for messages which are sent to Account objects once they are
+created.
+
+   <p>The method named <code>init</code> has only one line, <code>balance := 0</code>. 
+This initializes the hidden variable <code>balance</code> (actually
+called an instance variable) to zero, which makes
+sense for an account balance.  Notice that the method
+doesn't end with <code>^r</code> or anything like it: this method
+doesn't return a value to the message sender.  When you do
+not specify a return value, Smalltalk defaults the return
+value to the object currently executing.  For clarity of
+programming, you might consider explicitly returning <code>self</code>
+in cases where you intend the return value to be used.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> 
+And why didn't the designers default the
+return value to nil?  Perhaps they didn't appreciate
+the value of void functions.  After all, at
+the time Smalltalk was being designed, C didn't
+even have a void data type.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

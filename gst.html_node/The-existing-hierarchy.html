@@ -1,0 +1,235 @@
+<html lang="en">
+<head>
+<title>The existing hierarchy - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="More-subclassing.html#More-subclassing" title="More subclassing">
+<link rel="next" href="Playing-with-Arrays.html#Playing-with-Arrays" title="Playing with Arrays">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="The-existing-hierarchy"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Playing-with-Arrays.html#Playing-with-Arrays">Playing with Arrays</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="More-subclassing.html#More-subclassing">More subclassing</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.9.1 The Existing Class Hierarchy</h4>
+
+<p>To discuss where a new class might go, it is helpful to
+have a map of the current classes.  The following is the
+basic class hierarchy of <span class="sc">gnu</span> Smalltalk.  Indentation means
+that the line inherits from the earlier line with one less
+level of indentation.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>.
+
+<pre class="display">       Object
+         Behavior
+           ClassDescription
+             Class
+             Metaclass
+         BlockClosure
+         Boolean
+           False
+           True
+         Browser
+         CFunctionDescriptor
+         CObject
+           CAggregate
+             CArray
+             CPtr
+           CCompound
+             CStruct
+             CUnion
+           CScalar
+             CChar
+             CDouble
+             CFloat
+             CInt
+             CLong
+             CShort
+             CSmalltalk
+             CString
+             CUChar
+               CByte
+                 CBoolean
+             CUInt
+             CULong
+             CUShort
+         Collection
+           Bag
+           MappedCollection
+           SequenceableCollection
+             ArrayedCollection
+               Array
+               ByteArray
+               WordArray
+               LargeArrayedCollection
+                 LargeArray
+                 LargeByteArray
+                 LargeWordArray
+               CompiledCode
+                 CompiledMethod
+                 CompiledBlock
+               Interval
+               CharacterArray
+                 String
+                   Symbol
+             LinkedList
+               Semaphore
+             OrderedCollection
+               RunArray
+               SortedCollection
+           HashedCollection
+             Dictionary
+               IdentityDictionary
+                 MethodDictionary
+               RootNamespace
+                 Namespace
+                 SystemDictionary
+             Set
+               IdentitySet
+         ContextPart
+           BlockContext
+           MethodContext
+         CType
+           CArrayCType
+           CPtrCType
+           CScalarCType
+         Delay
+         DLD
+         DumperProxy
+           AlternativeObjectProxy
+             NullProxy
+               VersionableObjectProxy
+             PluggableProxy
+         File
+           Directory
+         FileSegment
+         Link
+           Process
+           SymLink
+         Magnitude
+           Association
+           Character
+           Date
+           LargeArraySubpart
+           Number
+             Float
+             Fraction
+             Integer
+               LargeInteger
+                 LargeNegativeInteger
+                 LargePositiveInteger
+                   LargeZeroInteger
+               SmallInteger
+           Time
+         Memory
+         Message
+           DirectedMessage
+         MethodInfo
+         NullProxy
+         PackageLoader
+         Point
+         ProcessorScheduler
+         Rectangle
+         SharedQueue
+         Signal
+           Exception
+             Error
+               Halt
+                 ArithmeticError
+                   ZeroDivide
+                 MessageNotUnderstood
+               UserBreak
+             Notification
+               Warning
+         Stream
+           ObjectDumper
+           PositionableStream
+             ReadStream
+             WriteStream
+               ReadWriteStream
+                 ByteStream
+                   FileStream
+           Random
+           TextCollector
+           TokenStream
+         TrappableEvent
+           CoreException
+           ExceptionCollection
+         UndefinedObject
+         ValueAdaptor
+           NullValueHolder
+           PluggableAdaptor
+             DelayedAdaptor
+           ValueHolder
+</pre>
+   <p>While initially a daunting list, you should take the
+time to hunt down the classes we've examined in this tutorial
+so far.  Notice, for instance, how an Array is a subclass
+below the <i>SequenceableCollection</i> class.  This makes sense;
+you can walk an Array from one end to the other.  By contrast,
+notice how this is not true for Sets: it doesn't make sense
+to walk a Set from one end to the other.
+
+   <p>A little puzzling is the relationship of a Bag to a Set, since
+a Bag is actually a Set supporting multiple occurrences of its
+elements.  The answer lies in the purpose of both a Set and a
+Bag.  Both hold an unordered collection of objects; but a Bag
+needs to be optimized for the case when an object has possibly
+thousands of occurrences, while a Set is optimized for checking
+object uniqueness.  That's why Set being a subclass or Bag, or
+the other way round, would be a source of problems in the actual
+implementation of the class.  Currently a Bag holds a Dictionary
+associating each object to each count; it would be feasible however
+to have Bag as a subclass of HashedCollection and a sibling of Set.
+
+   <p>Look at the treatment of numbers&mdash;starting with the class
+<i>Magnitude</i>.  While numbers can indeed be ordered by <em>less than</em>,
+<em>greater than</em>, and so forth, so can a number of other
+objects.  Each subclass of Magnitude is such an
+object.  So we can compare characters with other characters,
+dates with other dates, and times with other times, as well
+as numbers with numbers.
+
+   <p>Finally, you will have probably noted some pretty strange classes,
+representing language entities that you might have never thought
+of as objects themselves: <i>Namespace</i>, <i>Class</i> and even
+<i>CompiledMethod</i>.  They are the base of Smalltalk's &ldquo;reflection&rdquo;
+mechanism which will be discussed later, in <a href="Why-is-_0023new-there_003f_0021_003f.html#Why-is-_0023new-there_003f_0021_003f">The truth on metaclasses</a>.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> This listing is courtesy of the
+printHierarchy method supplied by <span class="sc">gnu</span> Smalltalk author Steve
+Byrne.  It's in the <samp><span class="file">kernel/Browser.st</span></samp> file.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

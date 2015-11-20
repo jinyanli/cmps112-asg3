@@ -1,0 +1,170 @@
+<html lang="en">
+<head>
+<title>GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="../index.html#DIR" title="(DIR)">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<h1 class="settitle">GNU Smalltalk User's Guide</h1>
+<div class="node">
+<p>
+<a name="Top"></a>
+Up:&nbsp;<a rel="up" accesskey="u" href="../index.html#DIR">(DIR)</a>
+<hr>
+</div>
+
+<h2 class="unnumbered">GNU Smalltalk User's Guide</h2>
+
+<p>This document describes installing and operating the <span class="sc">gnu</span> Smalltalk
+programming environment.
+
+   <blockquote>
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled
+&ldquo;GNU Free Documentation License&rdquo;. 
+</blockquote>
+
+<ul class="menu">
+<li><a accesskey="1" href="Overview.html#Overview">Overview</a>:             What <span class="sc">gnu</span> Smalltalk is. 
+<li><a accesskey="2" href="Using-GNU-Smalltalk.html#Using-GNU-Smalltalk">Using GNU Smalltalk</a>:  Running <span class="sc">gnu</span> Smalltalk. 
+<li><a accesskey="3" href="Features.html#Features">Features</a>:             A description of <span class="sc">gnu</span> Smalltalk's special features. 
+<li><a accesskey="4" href="Packages.html#Packages">Packages</a>:             An easy way to install Smalltalk code into an image. 
+<li><a accesskey="5" href="Emacs.html#Emacs">Emacs</a>:                <span class="sc">gnu</span> Smalltalk and Emacs. 
+<li><a accesskey="6" href="C-and-Smalltalk.html#C-and-Smalltalk">C and Smalltalk</a>:      <span class="sc">gnu</span> Smalltalk's C/Smalltalk interoperability features. 
+<li><a accesskey="7" href="Tutorial.html#Tutorial">Tutorial</a>:             An introduction to Smalltalk and OOP.
+
+</li></ul>
+<p>--- The detailed node listing ---
+
+<p>Using GNU Smalltalk:
+</p>
+<ul class="menu">
+<li><a accesskey="8" href="Invocation.html#Invocation">Invocation</a>:           What you can specify on the command line. 
+<li><a accesskey="9" href="Operation.html#Operation">Operation</a>:            A step-by-step description of the
+                        startup process and a short description of
+                        how to interact with <span class="sc">gnu</span> Smalltalk. 
+<li><a href="Syntax.html#Syntax">Syntax</a>:               A description of the input file syntax
+<li><a href="Test-suite.html#Test-suite">Test suite</a>:           How to run the test suite system. 
+<li><a href="Legal-concerns.html#Legal-concerns">Legal concerns</a>:       Licensing of GNU Smalltalk
+
+</li></ul>
+<p>Operation:
+</p>
+<ul class="menu">
+<li><a href="Command_002dline-processing.html#Command_002dline-processing">Command-line processing</a>:         Picking an image path and a kernel path. 
+<li><a href="Loading-or-creating-an-image.html#Loading-or-creating-an-image">Loading or creating an image</a>:    Loading an image or creating a new one. 
+<li><a href="Starting-the-system.html#Starting-the-system">Starting the system</a>:             After the image is created or restored.
+
+</li></ul>
+<p>Legal concerns:
+</p>
+<ul class="menu">
+<li><a href="GPL.html#GPL">GPL</a>:                  Complying with the GNU GPL. 
+<li><a href="LGPL.html#LGPL">LGPL</a>:                 Complying with the GNU LGPL.
+
+</li></ul>
+<p>Features:
+</p>
+<ul class="menu">
+<li><a href="Extended-streams.html#Extended-streams">Extended streams</a>:     Extensions to streams, and generators
+<li><a href="Regular-expressions.html#Regular-expressions">Regular expressions</a>:  String matching extensions
+<li><a href="Namespaces.html#Namespaces">Namespaces</a>:           Avoiding clashes between class names. 
+<li><a href="Disk-file_002dIO.html#Disk-file_002dIO">Disk file-IO</a>:         Methods for reading and writing disk files. 
+<li><a href="Object-dumping.html#Object-dumping">Object dumping</a>:       Methods that read and write objects in binary format. 
+<li><a href="Dynamic-loading.html#Dynamic-loading">Dynamic loading</a>:      Picking external libraries and modules at run-time. 
+<li><a href="Documentation.html#Documentation">Documentation</a>:        Automatic documentation generation. 
+<li><a href="Memory-access.html#Memory-access">Memory access</a>:        The direct memory accessing classes and methods, plus
+                        broadcasts from the virtual machine. 
+<li><a href="GC.html#GC">GC</a>:                   The <span class="sc">gnu</span> Smalltalk memory manager. 
+<li><a href="Security.html#Security">Security</a>:             Sandboxing and access control. 
+<li><a href="Special-objects.html#Special-objects">Special objects</a>:      Methods to assign particular properties to objects.
+
+</li></ul>
+<p>Packages
+</p>
+<ul class="menu">
+<li><a href="Blox.html#Blox">Blox, BloxTK, and Browser</a>
+<li><a href="Smalltalk_002din_002dSmalltalk.html#Smalltalk_002din_002dSmalltalk">Parser, STInST, Compiler</a>
+<li><a href="Database.html#Database">DBI</a>
+<li><a href="Locales.html#Locales">I18N</a>
+<li><a href="Seaside.html#Seaside">Seaside</a>
+<li><a href="Swazoo.html#Swazoo">Swazoo</a>
+<li><a href="SUnit.html#SUnit">SUnit</a>
+<li><a href="Network-support.html#Network-support">Sockets, WebServer, NetClients</a>
+<li><a href="XML.html#XML">XML, XPath, XSL</a>
+<li><a href="Other-packages.html#Other-packages">Other packages</a>
+
+</li></ul>
+<p>Emacs
+</p>
+<ul class="menu">
+<li><a href="Autoloading.html#Autoloading">Autoloading</a>:        Autoloading <span class="sc">gnu</span> Smalltalk mode. 
+<li><a href="Editing.html#Editing">Editing</a>:            Autoindent and more for <span class="sc">gnu</span> Smalltalk. 
+<li><a href="Interactor.html#Interactor">Interactor</a>:         Smalltalk interactor mode.
+
+</li></ul>
+<p>C and Smalltalk:
+</p>
+<ul class="menu">
+<li><a href="External-modules.html#External-modules">External modules</a>:         Linking your libraries to the virtual machine
+<li><a href="C-callout.html#C-callout">C callout</a>:                Calls from Smalltalk to C
+<li><a href="C-data-types.html#C-data-types">C data types</a>:             Manipulating C data from Smalltalk
+<li><a href="Smalltalk-types.html#Smalltalk-types">Smalltalk types</a>:          Manipulating Smalltalk data from C
+<li><a href="Smalltalk-callin.html#Smalltalk-callin">Smalltalk callin</a>:         Calls from C to Smalltalk
+<li><a href="Object-representation.html#Object-representation">Object representation</a>:    Manipulating your own Smalltalk objects
+<li><a href="Incubator.html#Incubator">Incubator</a>:                Protecting newly created objects from garbage
+                            collections
+<li><a href="Other-C-functions.html#Other-C-functions">Other C functions</a>:        Handling and creating OOPs
+<li><a href="Using-Smalltalk.html#Using-Smalltalk">Using Smalltalk</a>:          The Smalltalk environment as an extension library
+
+</li></ul>
+<p>Tutorial:
+</p>
+<ul class="menu">
+<li><a href="Getting-started.html#Getting-started">Getting started</a>:               Starting to explore <span class="sc">gnu</span> Smalltalk
+<li><a href="Some-classes.html#Some-classes">Some classes</a>:                  Using some of the Smalltalk classes
+<li><a href="The-hierarchy.html#The-hierarchy">The hierarchy</a>:                 The Smalltalk class hierarchy
+<li><a href="Creating-classes.html#Creating-classes">Creating classes</a>:              Creating a new class of objects
+<li><a href="Creating-subclasses.html#Creating-subclasses">Creating subclasses</a>:           Adding subclasses to another class
+<li><a href="Code-blocks-_0028I_0029.html#Code-blocks-_0028I_0029">Code blocks (I)</a>:               Control structures in Smalltalk
+<li><a href="Code-blocks-_0028II_0029.html#Code-blocks-_0028II_0029">Code blocks (II)</a>:              Guess what? More control structures
+<li><a href="Debugging.html#Debugging">Debugging</a>:                     Things go bad in Smalltalk too! 
+<li><a href="More-subclassing.html#More-subclassing">More subclassing</a>:              Coexisting in the class hierarchy
+<li><a href="Streams.html#Streams">Streams</a>:                       Something really powerful
+<li><a href="Exception-handling.html#Exception-handling">Exception handling</a>:            More sophisticated error handling
+<li><a href="Behind-the-scenes.html#Behind-the-scenes">Behind the scenes</a>:             Some nice stuff from the Smalltalk innards
+<li><a href="And-now.html#And-now">And now</a>:                       Some final words
+<li><a href="The-syntax.html#The-syntax">The syntax</a>:                    For the most die-hard computer scientists
+
+</ul>
+
+   </body></html>
+

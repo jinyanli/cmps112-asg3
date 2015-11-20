@@ -1,0 +1,233 @@
+<html lang="en">
+<head>
+<title>Iteration - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Code-blocks-_0028I_0029.html#Code-blocks-_0028I_0029" title="Code blocks (I)">
+<link rel="prev" href="Conditions.html#Conditions" title="Conditions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Iteration"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Conditions.html#Conditions">Conditions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Code-blocks-_0028I_0029.html#Code-blocks-_0028I_0029">Code blocks (I)</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.6.2 Iteration and collections</h4>
+
+<p>Now that we have some sanity checking in place, it
+remains for us to keep a log of the checks we write.  We
+will do so by adding a Dictionary object to our Checking
+class, logging checks into it, and providing some messages
+for querying our check-writing history.  But this enhancement
+brings up a very interesting question&mdash;when we change
+the &ldquo;shape&rdquo; of an object (in this case, by adding our dictionary
+as a new instance variable to the Checking class),
+what happens to the existing class, and its objects? 
+The answer is that the old objects are mutated to keep their
+new shape, and all methods are recompiled so that they work
+with the new shape.  New objects will have exactly the same shape
+as old ones, but old objects might happen to be initialized
+incorrectly (since the newly added variables will be simply
+put to nil).  As this can lead to very puzzling behavior, it is
+usually best to eradicate all of the old objects, and then
+implement your changes.
+
+   <p>If this were more than a toy object
+accounting system, this would probably entail saving the
+objects off, converting to the new class, and reading the
+objects back into the new format.  For now, we'll just
+ignore what's currently there, and define our latest Checking
+class.
+
+<pre class="example">     Checking extend [
+         | history |
+</pre>
+   <p>This is the same syntax as the last time we defined a checking account,
+except that we start with <code>extend</code> (since the class is already
+there).  Then, the two instance variables we had defined remain, and we
+add a new <code>history</code> variable; the old methods will be recompiled
+without errors.  We must now feed in our definitions for each of the
+messages our object can handle, since we are basically defining a new
+class under an old name.
+
+   <p>With our new Checking instance variable, we are all set to start recording
+our checking history.  Our first change will be in the handling of the
+<code>init</code> message:
+<pre class="example">            init [
+                &lt;category: 'initialization'&gt;
+                checksleft := 0.
+                history := Dictionary new.
+                ^ super init
+            ]
+</pre>
+   <p>This provides us with a Dictionary, and hooks it to our new
+<code>history</code> variable.
+
+   <p>Our next method records each check as it's written. 
+The method is a little more involved, as we've added some
+more sanity checks to the writing of checks.
+
+<pre class="example">        writeCheck: amount [
+            &lt;category: 'spending'&gt;
+            | num |
+     
+            "Sanity check that we have checks left in our checkbook"
+            (checksleft &lt; 1)
+                ifTrue: [ ^self error: 'Out of checks' ].
+     
+            "Make sure we've never used this check number before"
+            num := checknum.
+            (history includesKey: num)
+                ifTrue: [ ^self error: 'Duplicate check number' ].
+     
+            "Record the check number and amount"
+            history at: num put: amount.
+     
+            "Update our next checknumber, checks left, and balance"
+            checknum := checknum + 1.
+            checksleft := checksleft - 1.
+            self spend: amount.
+            ^ num
+        ]
+</pre>
+   <p>We have added three things to our latest version of
+<code>writeCheck:</code>.  First, since our routine has become somewhat
+involved, we have added comments.  In Smalltalk, single
+quotes are used for strings; double quotes enclose comments. 
+We have added comments before each section of code.
+
+   <p>Second, we have added a sanity check on the check number
+we propose to use.  Dictionary objects respond to the
+<code>includesKey:</code> message with a boolean, depending on whether
+something is currently stored under the given key in the
+dictionary.  If the check number is already used, the <code>error:</code>
+message is sent to our object, aborting the operation.
+
+   <p>Finally, we add a new entry to the dictionary.  We have
+already seen the <code>at:put:</code> message (often found written
+as <code>#at:put:</code>, with a sharp in front of it) at the start of
+this tutorial.  Our use here simply associates a check number with
+an amount of money spent.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a> With this, we now have a working Checking
+class, with reasonable sanity checks and per-check information.
+
+   <p>Let us finish the chapter by enhancing our ability to
+get access to all this information.  We will start with some
+simple print-out functions.
+
+<pre class="example">        printOn: stream [
+            super printOn: stream.
+            ', checks left: ' printOn: stream.
+            checksleft printOn: stream.
+            ', checks written: ' printOn: stream.
+            (history size) printOn: stream.
+        ]
+        check: num [
+            | c |
+            c := history
+                at: num
+                ifAbsent: [ ^self error: 'No such check #' ].
+            ^c
+        ]
+</pre>
+   <p>There should be very few surprises here.  We format and
+print our information, while letting our parent classes handle
+their own share of the work.  When looking up a check
+number, we once again take advantage of the fact that blocks
+of executable statements are an object; in this case, we are
+using the <code>at:ifAbsent:</code> message supported by the
+Dictionary class.  As you can probably anticipate, if the
+requested key value is not found in the
+dictionary, the code block is executed.  This allows us to
+customize our error handling, as the generic error would only
+tell the user &ldquo;key not found&rdquo;.
+
+   <p>While we can look up a check if we know its number, we
+have not yet written a way to &ldquo;riffle through&rdquo; our collection
+of checks.  The following function loops over the
+checks, printing them out one per line.  Because there is
+currently only a single numeric value under each key, this
+might seem wasteful.  But we have already considered storing
+multiple values under each check number, so it is best to
+leave some room for each item.  And, of course, because we
+are simply sending a printing message to an object, we will
+not have to come back and re-write this code so long as the
+object in the dictionary honors our <code>printNl</code>/<code>printOn:</code> messages
+sages.
+
+<pre class="example">         printChecks [
+             history keysAndValuesDo: [ :key :value |
+                 key print.
+                 ' - ' print.
+                 value printNl.
+             ]
+         ]
+     ]
+</pre>
+   <p>We still see a code block object being passed to the
+dictionary, but <code>:key :value |</code> is something new.  A code
+block can optionally receive arguments.  In this case, the
+two arguments represent a key/value pair. 
+If you only wanted the value portion, you could call
+history with a <code>do:</code> message instead; if you only wanted the
+key portion, you could call history with a <code>keysDo:</code> message instead.
+
+   <p>We then invoke our printing interface upon them.  We don't want a
+newline until the end, so the <code>print</code> message is used instead. 
+It is pretty much the same as <code>printNl</code>, since both implicitly use
+<code>Transcript</code>, except it doesn't add a newline.
+
+   <p>It is important that you be clear that in principle there is
+no relationship between the code block and the dictionary you
+passed it to.  The dictionary just invokes the passed code block
+with a key/value pair when processing a keysAndValuesDo: message.  But
+the same two-parameter code block can be passed to any message that
+wishes to evaluate it (and passes the exact number of parameters to
+it).  In the next chapter
+we'll see more on how code blocks are used; we'll also look at how
+you can invoke code blocks in your own code.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> You might start to wonder what
+one would do if you wished to associate two pieces of
+information under one key.  Say, the value and who the
+check was written to.  There are several ways; the
+best would probably be to create a new, custom
+object which contained this information, and then
+store this object under the check number key in
+the dictionary.  It would also be valid (though
+probably overkill) to store a dictionary as the
+value&mdash;and then store as many pieces of information
+as you'd like under each slot!</p>
+
+   <p><hr></div>
+
+   </body></html>
+

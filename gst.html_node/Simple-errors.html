@@ -1,0 +1,71 @@
+<html lang="en">
+<head>
+<title>Simple errors - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Debugging.html#Debugging" title="Debugging">
+<link rel="next" href="Nested-calls.html#Nested-calls" title="Nested calls">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Simple-errors"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Nested-calls.html#Nested-calls">Nested calls</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Debugging.html#Debugging">Debugging</a>
+<hr>
+</div>
+
+<h4 class="subsection">6.8.1 A Simple Error</h4>
+
+<p>First, let's take a look at a typical error.  Type:
+<pre class="example">        7 plus: 1
+</pre>
+   <p>This will print out:
+<pre class="example">        7 did not understand selector 'plus:'
+        &lt;blah blah&gt;
+        UndefinedObject&gt;&gt;#executeStatements
+</pre>
+   <p>The first line is pretty simple; we sent a message to the
+<code>7</code> object which was not understood; not surprising since
+the <code>plus:</code> operation should have been <code>+</code>.  Then there are
+a few lines of gobbledegook: just ignore them, they reflect
+the fact that the error passed throgh <span class="sc">gnu</span> Smalltalk's exception
+handling system.  The remaining line reflect the way the
+<span class="sc">gnu</span> Smalltalk invokes code which we type to our command prompt; it
+generates a block of code which is invoked via an internal
+method <code>executeStatements</code> defined in class Object and evaluated
+like <code>nil executeStatements</code> (nil is an instance of <i>UndefinedObject</i>). 
+Thus, this output tells you that you directly typed a line which sent an
+invalid message to the <code>7</code> object.
+
+   <p>All the error output but the first line is actually a
+stack backtrace.  The most recent call is the one nearer the
+top of the screen.  In the next example, we will cause an
+error which happens deeper within an object.
+
+   </body></html>
+

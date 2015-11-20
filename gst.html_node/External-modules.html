@@ -1,0 +1,155 @@
+<html lang="en">
+<head>
+<title>External modules - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="C-and-Smalltalk.html#C-and-Smalltalk" title="C and Smalltalk">
+<link rel="next" href="C-callout.html#C-callout" title="C callout">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="External-modules"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="C-callout.html#C-callout">C callout</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="C-and-Smalltalk.html#C-and-Smalltalk">C and Smalltalk</a>
+<hr>
+</div>
+
+<h3 class="section">5.1 Linking your libraries to the virtual machine</h3>
+
+<p>A nice thing you can do with <span class="sc">gnu</span> Smalltalk is enhancing it with your own
+goodies.  If they're written in Smalltalk only, no problem: getting them
+to work as packages (see <a href="Packages.html#Packages">Packages</a>), and to fit in with the <span class="sc">gnu</span> Smalltalk
+packaging system, is likely to be a five-minutes task.
+
+   <p>If your goodie is mostly written in C and you don't need particular glue
+to link it to Smalltalk (for example, there are no callbacks from C code
+to Smalltalk code), you can use the <code>dynamic library linking</code>
+system.  When using this system, you have to link <span class="sc">gnu</span> Smalltalk with the
+library at run-time using <span class="sc">dld</span>; the method to be used here is
+<code>DLD class&gt;&gt;#addLibrary:</code>.
+
+   <p>But if you want to provide a more intimate link between C and Smalltalk,
+as is the case with Blox, you should use the <code>dynamic module
+linking</code> system.  This section explains what to do, taking the Blox
+library as a guide.
+
+   <p>Modules are searched for in the <samp><span class="file">gnu-smalltalk</span></samp> subdirectory of the
+system library path, or in the directory that the
+<samp><span class="env">SMALLTALK_MODULES</span></samp> environment variable points to.  A module is
+distinguished from a standard shared library because it has a function
+which Smalltalk calls to initialize the module; the name of this
+function must be <code>gst_initModule</code>.  Here is the initialization
+function used by Blox:
+
+<pre class="example">     void
+     gst_initModule(proxy)
+          VMProxy *proxy;
+     {
+       vmProxy = proxy;
+       vmProxy-&gt;defineCFunc("Tcl_Eval", Tcl_Eval);
+       vmProxy-&gt;defineCFunc("Tcl_GetStringResult", Tcl_GetStringResult);
+       vmProxy-&gt;defineCFunc("tclInit", tclInit);
+       vmProxy-&gt;defineCFunc("bloxIdle", bloxIdle);
+     }
+</pre>
+   <p>Note that the <code>defineCFunc</code> function is called through a function
+pointer in <code>gst_initModule</code>, and that Blox saves the value of its
+parameter to be used elsewhere in its code.  This is not strictly
+necessary on many platforms, namely those where the module is
+effectively <em>linked with the Smalltalk virtual machine</em> at
+run-time; but since some<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a> cannot obtain this, for maximum portability you must always
+call the virtual machine through the proxy and never refer to any symbol
+which the virtual machine exports.  For uniformity, even programs that
+link with <samp><span class="file">libgst.a</span></samp> should not call these functions directly, but
+through a <code>VMProxy</code> exported by <samp><span class="file">libgst.a</span></samp> and accessible
+through the <code>gst_interpreter_proxy</code> variable.
+
+   <p>First of all, you have to build your package as a shared library; using
+<span class="sc">gnu</span> Automake and <code>libtool</code>, this is as easy as changing your
+<samp><span class="file">Makefile.am</span></samp> file so that it reads like this
+
+<pre class="example">     pkglib_LTLIBRARIES = libblox.la
+     libblox_la_LDFLAGS = -module -no-undefined <dfn>... more flags ...</dfn>
+     libblox_la_SOURCES = <dfn>... your source files ...</dfn>
+</pre>
+   <p class="noindent">instead of reading like this
+
+<pre class="example">     pkglib_LIBRARIES = libblox.a
+     libblox_a_LDFLAGS = <dfn>... more flags ...</dfn>
+     libblox_a_SOURCES = <dfn>... your source files ...</dfn>
+</pre>
+   <p>As you see, you only have to change <samp><span class="file">.a</span></samp> extensions to <samp><span class="file">.la</span></samp>,
+<code>LIBRARIES</code> targets to <code>LTLIBRARIES</code>, and add appropriate
+options to <code>LDFLAGS</code><a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>.  You will also have to run <code>libtoolize</code> and follow its
+instruction, but this is really simpler than it looks.
+
+   <p>Note that this example uses <samp><span class="file">pkglib</span></samp> because <span class="sc">Blox</span> is installed
+together with Smalltalk, but in general this is not necessary.  You can
+install the library wherever you want; <code>libtool</code> will even generate
+appropriate warnings to the installer if <code>ldconfig</code> (or an
+equivalent program) has to be re-run.
+
+   <p>Finally, you will have to add the name of the module in the
+<samp><span class="file">packages.xml</span></samp> file.  In this case, the relevant entry in that file
+will be
+
+<pre class="example">     &lt;package&gt;
+       &lt;name&gt;BloxTK&lt;/name&gt;
+       &lt;namespace&gt;BLOX&lt;/namespace&gt;
+       &lt;filein&gt;BloxBasic.st&lt;/filein&gt;
+       &lt;filein&gt;BloxWidgets.st&lt;/filein&gt;
+       &lt;filein&gt;BloxText.st&lt;/filein&gt;
+       &lt;filein&gt;BloxCanvas.st&lt;/filein&gt;
+       &lt;filein&gt;BloxExtend.st&lt;/filein&gt;
+       &lt;filein&gt;Blox.st&lt;/filein&gt;
+       &lt;module&gt;blox-tk&lt;/module&gt;
+       &lt;directory&gt;blox-tk&lt;/directory&gt;
+     
+       &lt;file&gt;Blox.st&lt;/file&gt;
+       &lt;file&gt;BloxBasic.st&lt;/file&gt;
+       &lt;file&gt;BloxWidgets.st&lt;/file&gt;
+       &lt;file&gt;BloxText.st&lt;/file&gt;
+       &lt;file&gt;BloxCanvas.st&lt;/file&gt;
+       &lt;file&gt;BloxExtend.st&lt;/file&gt;
+       &lt;file&gt;colors.txt&lt;/file&gt;
+     &lt;/package&gt;
+</pre>
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> The most notable are <span class="sc">aix</span> and
+Windows.</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> Specifying <samp><span class="option">-no-undefined</span></samp> is
+not necessary, but it does perform that the portability conditions
+explained above (no reference to symbols in the virtual machine) are
+satisfied</p>
+
+   <p><hr></div>
+
+   </body></html>
+

@@ -1,0 +1,289 @@
+<html lang="en">
+<head>
+<title>C data types - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="C-and-Smalltalk.html#C-and-Smalltalk" title="C and Smalltalk">
+<link rel="prev" href="C-callout.html#C-callout" title="C callout">
+<link rel="next" href="Smalltalk-types.html#Smalltalk-types" title="Smalltalk types">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="C-data-types"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Smalltalk-types.html#Smalltalk-types">Smalltalk types</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="C-callout.html#C-callout">C callout</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="C-and-Smalltalk.html#C-and-Smalltalk">C and Smalltalk</a>
+<hr>
+</div>
+
+<h3 class="section">5.3 The C data type manipulation system</h3>
+
+<!-- rewrite this..... -->
+<p><code>CType</code> is a class used to represent C data types themselves (no
+storage, just the type). There are subclasses called things like
+<code>C</code><var>mumble</var><code>CType</code>.  The instances can answer their size and
+alignment.  Their <code>valueType</code> is the underlying type of data.  It's
+either an integer, which is interpreted by the interpreter as the scalar
+type, or the underlying element type, which is another <code>CType</code>
+subclass instance.
+
+   <p>To make life easier, there are global variables which hold onto
+instances of <code>CScalarCType</code>: they are called
+<code>C</code><var>mumble</var><code>Type</code> (like <code>CIntType</code>, not like
+<code>CIntCType</code>), and can be used wherever a C datatype is used.  If
+you had an array of strings, the elements would be CStringType's (a
+specific instance of CScalarCType).
+
+   <p><code>CObject</code> is the base class of the instances of C data.  It has a
+subclass called <code>CScalar</code>, which has subclasses called
+<code>C</code><var>mumble</var>.  These subclasses can answer size and alignment
+information.
+
+   <p>Instances of <code>CObject</code> can hold a raw C pointer (for example in
+<code>malloc</code>ed heap)), or can delegate their storage to a <code>ByteArray</code>. 
+In the latter case, the storage is automatically garbage collected when
+the <code>CObject</code> becomes dead, and the VM checks accesses to make sure
+they are in bounds.  On the other hand, the storage may move, and for this
+reason extra care must be put when using this kind of <code>CObject</code> with
+C routines that call back into Smalltalk, or that store the passed pointer
+somewhere.
+
+   <p>Instances of <code>CObject</code> can be created in many ways:
+     <ul>
+<li>creating an instance with <var>class</var><code> new</code> initializes
+  the pointer to <code>NULL</code>;
+
+     <li>doing <var>type</var><code> new</code>, where <var>type</var> is a <code>CType</code>
+  subclass instance, allocates a new instance with <code>malloc</code>.
+
+     <li>doing <var>type</var><code> gcNew</code>, where <var>type</var> is a <code>CType</code>
+  subclass instance, allocates a new instance backed by garbage-collected
+  storage.
+
+   </ul>
+
+   <p><code>CStruct</code> and <code>CUnion</code> subclasses are special.  First,
+<code>new</code> allocates a new instance with <code>malloc</code> instead of initializing
+the pointer to <code>NULL</code>. Second, they support <code>gcNew</code> which
+creates a new instance backed by garbage-collected storage.
+
+   <p><code>CObject</code>s created by the C callout mechanism are never backed by
+garbage-collected storage.
+
+   <p><code>CObject</code> and its subclasses represent a pointer to a C object and
+as such provide the full range of operations supported by C pointers. 
+For example, <code>+</code> <code>anInteger</code> which returns a CObject which is
+higher in memory by <code>anInteger</code> times the size of each item. There
+is also <code>-</code> which acts like <code>+</code> if it is given an
+integer as its parameter.  If a CObject is given, it returns the
+difference between the two pointers.  <code>incr</code>, <code>decr</code>,
+<code>incrBy:</code>, <code>decrBy:</code> adjust the string either forward or
+backward, by either 1 or <code>n</code> characters.  Only the pointer to the
+string is changed; the actual characters in the string remain untouched.
+
+   <p>CObjects can be divided into two families, scalars and non-scalars,
+just like C data types.  Scalars fetch a Smalltalk object when sent the
+<code>value</code> message, and change their value when sent the <code>value:</code>
+message.  Non-scalars do not support these two messages.  Non-scalars
+include instances of <code>CArray</code> and subclasses of <code>CStruct</code>
+and <code>CUnion</code> (but not <code>CPtr</code>).
+
+   <p><code>CPtr</code>s and <code>CArray</code>s get their underlying element type through a
+<code>CType</code> subclass instance which is associated with the
+<code>CArray</code> or <code>CPtr</code> instance.
+
+   <p><code>CPtr</code>'s <code>value</code> and <code>value:</code> method get or change
+the underlying value that's pointed to.  <code>value</code> returns another
+<code>CObject</code> corresponding to the pointed value.  That's because, for
+example, a <code>CPtr</code> to <code>long</code> points to a place in memory where
+a pointer to long is stored.  It is really a <code>long **</code> and must be
+dereferenced twice with <code>cPtr value value</code> to get the <code>long</code>.
+
+   <p><code>CString</code> is a subclass of <code>CPtr</code> that answers a Smalltalk
+<code>String</code> when sent <code>value</code>, and automatically allocates
+storage to copy and null-terminate a Smalltalk <code>String</code> when sent
+<code>value:</code>.  <code>replaceWith:</code> replaces the string the instance
+points to with a new string or <code>ByteArray</code>, passed as the argument. 
+Actually, it copies the bytes from the Smalltalk <code>String</code> instance
+aString into the same buffer already pointed to by the <code>CString</code>,
+with a null terminator.
+
+   <p>Finally, there are <code>CStruct</code> and <code>CUnion</code>, which are abstract
+subclasses of <code>CObject</code><a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>.  The following will refer to CStruct, but the
+same considerations apply to CUnion as well, with the only difference that
+CUnions of course implement the semantics of a C union.
+
+   <p>These classes provide direct access to C data structures including
+     <ul>
+<li><code>long</code> (unsigned too)
+<li><code>short</code> (unsigned too)
+<li><code>char</code> (unsigned too) &amp; byte type
+<li><code>double</code>, <code>long double</code>, <code>float</code>
+<li><code>string</code> (NUL terminated char *, with special accessors)
+<li>arrays of any type
+<li>pointers to any type
+<li>other structs containing any fixed size types
+</ul>
+
+   <p>Here is an example struct decl in C:
+<pre class="example">     struct audio_prinfo {
+         unsigned    channels;
+         unsigned    precision;
+         unsigned    encoding;
+         unsigned    gain;
+         unsigned    port;
+         unsigned    _xxx[4];
+         unsigned    samples;
+         unsigned    eof;
+         unsigned char       pause;
+         unsigned char       error;
+         unsigned char       waiting;
+         unsigned char       _ccc[3];
+         unsigned char       open;
+         unsigned char       active;
+     };
+     
+     struct audio_info {
+         audio_prinfo_t      play;
+         audio_prinfo_t      record;
+         unsigned    monitor_gain;
+         unsigned    _yyy[4];
+     };
+</pre>
+   <p>And here is a Smalltalk equivalent decision:
+<pre class="example">     CStruct subclass: AudioPrinfo [
+         &lt;declaration: #( (#sampleRate #uLong)
+                          (#channels #uLong)
+                          (#precision #uLong)
+                          (#encoding #uLong)
+                          (#gain #uLong)
+                          (#port #uLong)
+                          (#xxx (#array #uLong 4))
+                          (#samples #uLong)
+                          (#eof #uLong)
+                          (#pause #uChar)
+                          (#error #uChar)
+                          (#waiting #uChar)
+                          (#ccc (#array #uChar 3))
+                          (#open #uChar)
+                          (#active #uChar))&gt;
+     
+         &lt;category: 'C interface-Audio'&gt;
+     ]
+     
+     CStruct subclass: AudioInfo [
+         &lt;declaration: #( (#play #{AudioPrinfo} )
+                          (#record #{AudioPrinfo} )
+                          (#monitorGain #uLong)
+                          (#yyy (#array #uLong 4)))&gt;
+     
+         &lt;category: 'C interface-Audio'&gt;
+     ]
+</pre>
+   <p>This creates two new subclasses of <code>CStruct</code> called
+<code>AudioPrinfo</code> and <code>AudioInfo</code>, with the given fields.  The
+syntax is the same as for creating standard subclasses, with the
+additional metadata <code>declaration:</code>.  You can
+make C functions return <code>CObject</code>s that are instances of these
+classes by passing <code>AudioPrinfo type</code> as the parameter to the
+<code>returning:</code> keyword.
+
+   <p>AudioPrinfo has methods defined on it like:
+<pre class="example">         #sampleRate
+         #channels
+         #precision
+         #encoding
+</pre>
+   <p class="noindent">etc.  These access the various data members.  The array element
+accessors (xxx, ccc) just return a pointer to the array itself.
+
+   <p>For simple scalar types, just list the type name after the variable. 
+Here's the set of scalars names, as defined in <samp><span class="file">kernel/CStruct.st</span></samp>:
+<pre class="example">        #long                   CLong
+        #uLong                  CULong
+        #ulong                  CULong
+        #byte                   CByte
+        #char                   CChar
+        #uChar                  CUChar
+        #uchar                  CUChar
+        #short                  CShort
+        #uShort                 CUShort
+        #ushort                 CUShort
+        #int                    CInt
+        #uInt                   CUInt
+        #uint                   CUInt
+        #float                  CFloat
+        #double                 CDouble
+        #longDouble             CLongDouble
+        #string                 CString
+        #smalltalk              CSmalltalk
+        #{...}                  <span class="roman">A given subclass of </span><code>CObject</code>
+</pre>
+   <p>The <code>#{...}</code> syntax is not in the Blue Book, but it is
+present in <span class="sc">gnu</span> Smalltalk and other Smalltalks; it returns an Association object
+corresponding to a global variable.
+
+   <p>To have a pointer to a type, use something like:
+<pre class="example">             (#example (#ptr #long))
+</pre>
+   <p>To have an array pointer of size <var>size</var>, use:
+<pre class="example">             (#example (#array #string <var>size</var>))
+</pre>
+   <p>Note that this maps to <code>char *example[</code><var>size</var><code>]</code> in C.
+
+   <p>The objects returned by using the fields are CObjects; there is no
+implicit value fetching currently.  For example, suppose you somehow got
+ahold of an instance of class AudioPrinfo as described above (the
+instance is a CObject subclass and points to a real C structure
+somewhere).  Let's say you stored this object in variable
+<code>audioInfo</code>.  To get the current gain value, do
+<pre class="example">         audioInfo gain value
+</pre>
+   <p>to change the gain value in the structure, do
+<pre class="example">         audioInfo gain value: 255
+</pre>
+   <p>The structure member message just answers a <code>CObject</code> instance, so
+you can hang onto it to directly refer to that structure member, or you
+can use the <code>value</code> or <code>value:</code> methods to access or change
+the value of the member.
+
+   <p>Note that this is the same kind of access you get if you use the
+<code>addressAt:</code> method on CStrings or CArrays or CPtrs: they return a
+CObject which points to a C object of the right type and you need to use
+<code>value</code> and <code>value:</code> to access and modify the actual C
+variable.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> Actually they have a common superclass
+named <code>CCompound</code>.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

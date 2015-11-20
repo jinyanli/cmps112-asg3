@@ -1,0 +1,162 @@
+<html lang="en">
+<head>
+<title>Incubator - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="C-and-Smalltalk.html#C-and-Smalltalk" title="C and Smalltalk">
+<link rel="prev" href="Object-representation.html#Object-representation" title="Object representation">
+<link rel="next" href="Other-C-functions.html#Other-C-functions" title="Other C functions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Incubator"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Other-C-functions.html#Other-C-functions">Other C functions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Object-representation.html#Object-representation">Object representation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="C-and-Smalltalk.html#C-and-Smalltalk">C and Smalltalk</a>
+<hr>
+</div>
+
+<h3 class="section">5.10 Incubator support</h3>
+
+<p>The incubator concept provides a mechanism to protect newly created
+objects from being accidentally garbage collected before they can be
+attached to some object which is reachable from the root set.
+
+   <p>If you are creating some set of objects which will not be immediately (that
+means, before the next object is allocated from the Smalltalk memory system) be
+attached to an object which is still &ldquo;live&rdquo; (reachable from the root set
+of objects), you'll need to use this interface.
+
+   <p>If you are writing a C call-out from Smalltalk (for example, inside a
+module), you will not have direct access to the incubator; instead
+the functions described in <a href="Smalltalk-types.html#Smalltalk-types">Smalltalk types</a> automatically put
+the objects that they create in the incubator, and the virtual machine
+takes care of wrapping C call-outs so that the incubator state is
+restored at the end of the call.
+
+   <p>This section describes its usage from the point of view of a program
+that is linking with <code>libgst.a</code>.  Such a program has much finer
+control to the incubator.  The interface provides the following operations:
+
+<div class="defun">
+&mdash; Macro: <b>void</b><var> INC_ADD_OOP </var>(<var>OOP anOOP</var>)<var><a name="index-void-105"></a></var><br>
+<blockquote><p>Adds a new object to the protected set. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>inc_ptr</b><var> INC_SAVE_POINTER </var>()<var><a name="index-inc_005fptr-106"></a></var><br>
+<blockquote><p>Retrieves the current incubator pointer.  Think of the incubator as a
+stack, and this operation returns the current stack pointer for later
+use (restoration) with the incRestorePointer function. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>void</b><var> INC_RESTORE_POINTER </var>(<var>inc_ptr ptr</var>)<var><a name="index-void-107"></a></var><br>
+<blockquote><p>Sets (restores) the incubator pointer to the given pointer value. 
+</p></blockquote></div>
+
+   <p>Typically, when you are within a function which allocates more than one
+object at a time, either directly or indirectly, you'd want to use the
+incubator mechanism.  First you'd save a copy of the current pointer in
+a local variable.  Then, for each object you allocate (except the last,
+if you want to be optimal), after you create the object you add it to
+the incubator's list.  When you return, you need to restore the
+incubator's pointer to the value you got with incSavePointer using the
+incRestorePointer function.
+
+   <p>Here's an example from cint.c:
+
+   <p>The old code was (the comments are added for this example):
+
+<pre class="example">       desc = (_gst_cfunc_descriptor)
+          new_instance_with (cFuncDescriptorClass, numArgs);
+       desc-&gt;cFunction = _gst_cobject_new (funcAddr);    // 1
+       desc-&gt;cFunctionName = _gst_string_new (funcName); // 2
+       desc-&gt;numFixedArgs = FROM_INT (numArgs);
+       desc-&gt;returnType = _gst_classify_type_symbol (returnTypeOOP, true);
+       for (i = 1; i &lt;= numArgs; i++) {
+         desc-&gt;argTypes[i - 1] =
+          _gst_classify_type_symbol(ARRAY_AT(argsOOP, i), false);
+       }
+     
+       return (_gst_alloc_oop(desc));
+</pre>
+   <p><code>desc</code> is originally allocated via <code>newInstanceWith</code> and
+<code>allocOOP</code>, two private routines which are encapsulated by the
+public routine <code>objectAlloc</code>.  At &ldquo;1&rdquo;, more storage is allocated,
+and the garbage collector has the potential to run and free (since no
+live object is referring to it) desc's storage.  At &ldquo;2&rdquo; another object
+is allocated, and again the potential for losing both <code>desc</code> and
+<code>desc-&gt;cFunction</code> is there if the GC runs (this actually
+happened!).
+
+   <p>To fix this code to use the incubator, modify it like this:
+
+<pre class="example">       OOP     descOOP;
+       IncPtr  ptr;
+     
+       incPtr = INC_SAVE_POINTER();
+       desc = (_gst_cfunc_descriptor)
+          new_instance_with (cFuncDescriptorClass, numArgs);
+       descOOP = _gst_alloc_oop(desc);
+       INC_ADD_OOP (descOOP);
+     
+       desc-&gt;cFunction = _gst_cobject_new (funcAddr);    // 1
+       INC_ADD_OOP (desc-&gt;cFunction);
+     
+       desc-&gt;cFunctionName = _gst_string_new (funcName); // 2
+       /* <span class="roman">since none of the rest of the function (or the functions it calls)</span>
+        * <span class="roman">allocates any storage, we don't have to add desc-&gt;cFunctionName</span>
+        * <span class="roman">to the incubator's set of objects, although we could if we wanted</span>
+        * <span class="roman">to be completely safe against changes to the implementations of</span>
+        * <span class="roman">the functions called from this function.</span>
+        */
+     
+       desc-&gt;numFixedArgs = FROM_INT (numArgs);
+       desc-&gt;returnType = _gst_classify_type_symbol (returnTypeOOP, true);
+       for (i = 1; i &lt;= numArgs; i++) {
+         desc-&gt;argTypes[i - 1] =
+          _gst_classify_type_symbol(ARRAY_AT(argsOOP, i), false);
+       }
+     
+       return (_gst_alloc_oop(desc));
+</pre>
+   <p>Note that it is permissible for two or more functions to cooperate with
+their use of the incubator.  For example, say function A allocates some
+objects, then calls function B which allocates some more objects, and
+then control returns to A where it does some more execution with the
+allocated objects.  If B is only called by A, B can leave the management
+of the incubator pointer up to A, and just register the objects it
+allocates with the incubator.  When A does a <code>INC_RESTORE_POINTER</code>,
+it automatically clears out the objects that B has registered from the
+incubator's set of objects as well; the incubator doesn't know about
+functions A &amp; B, so as far as it is concerned, all of the registered
+objects were registered from the same function.
+
+   </body></html>
+

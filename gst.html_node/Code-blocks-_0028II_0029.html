@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+<title>Code blocks (II) - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Tutorial.html#Tutorial" title="Tutorial">
+<link rel="prev" href="Code-blocks-_0028I_0029.html#Code-blocks-_0028I_0029" title="Code blocks (I)">
+<link rel="next" href="Debugging.html#Debugging" title="Debugging">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Code-blocks-(II)"></a>
+<a name="Code-blocks-_0028II_0029"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Debugging.html#Debugging">Debugging</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Code-blocks-_0028I_0029.html#Code-blocks-_0028I_0029">Code blocks (I)</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Tutorial.html#Tutorial">Tutorial</a>
+<hr>
+</div>
+
+<h3 class="section">6.7 Code blocks, part two</h3>
+
+<p>In the last chapter, we looked at how code blocks could
+be used to build conditional expressions, and how you could
+iterate across all entries in a collection.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>
+We built our own code blocks, and handed them off for use by system
+objects.  But there is nothing magic about invoking code
+blocks; your own code will often need to do so.  This chapter
+will shows some examples of loop construction in
+Smalltalk, and then demonstrate how you invoke code blocks
+for yourself.
+
+<ul class="menu">
+<li><a accesskey="1" href="Integer-loops.html#Integer-loops">Integer loops</a>:             Well, Smalltalk too has them
+<li><a accesskey="2" href="Intervals.html#Intervals">Intervals</a>:                 And of course here's a peculiar way to use them
+<li><a accesskey="3" href="Invoking-code-blocks.html#Invoking-code-blocks">Invoking code blocks</a>:      You can do it, too
+</ul>
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> The
+  <code>do:</code> message is understood by most types
+  of Smalltalk collections.  It works for the
+  Dictionary class, as well as sets, arrays, strings,
+  intervals, linked lists, bags, and streams.  The
+  <code>keysDo:</code> message, for example, works only with dictionaries.</p>
+
+   <p><hr></div>
+
+   </body></html>
+

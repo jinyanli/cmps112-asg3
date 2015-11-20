@@ -1,0 +1,120 @@
+<html lang="en">
+<head>
+<title>Using Smalltalk - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="C-and-Smalltalk.html#C-and-Smalltalk" title="C and Smalltalk">
+<link rel="prev" href="Other-C-functions.html#Other-C-functions" title="Other C functions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Using-Smalltalk"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Other-C-functions.html#Other-C-functions">Other C functions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="C-and-Smalltalk.html#C-and-Smalltalk">C and Smalltalk</a>
+<hr>
+</div>
+
+<h3 class="section">5.9 Using the Smalltalk environment as an extension library</h3>
+
+<p>If you are reading this chapter because you are going to write
+extensions to <span class="sc">gnu</span> Smalltalk, this section won't probably interest you.  But if
+you intend to use <span class="sc">gnu</span> Smalltalk as a scripting language or an extension
+language for your future marvellous software projects, you might be
+interest.
+
+   <p>How to initialize <span class="sc">gnu</span> Smalltalk is most briefly and easily explained by looking
+at <span class="sc">gnu</span> Smalltalk's own source code.  For this reason, here is a
+simplified snippet from <samp><span class="file">gst-tool.c</span></samp>.
+
+<pre class="example">     int main(argc, argv)
+     int     argc;
+     char    **argv;
+     {
+       gst_set_var (GST_VERBOSITY, 1);
+       gst_smalltalk_args (argc - 1, argv + 1);
+       gst_set_executable_path (argv[0]);
+       result = gst_initialize ("<var>kernel-dir</var>", "<var>image-file</var>", GST_NO_TTY);
+       if (result != 0)
+         exit (result &lt; 0 ? 1 : result);
+     
+       if (!gst_process_file ("<var>source-file</var>", GST_DIR_KERNEL_SYSTEM))
+         perror ("gst: couldn't load `<var>source-file</var>'");
+     
+       gst_invoke_hook (GST_ABOUT_TO_QUIT);
+       exit (0);
+     }
+</pre>
+   <p>Your initialization code will be almost the same as that in <span class="sc">gnu</span> Smalltalk's
+<code>main()</code>, with the exception of the call to
+<code>gst_process_file</code>.  All you'll have to do is to pass some
+arguments to the <span class="sc">gnu</span> Smalltalk library via <code>gst_smalltalk_args</code>, possibly
+modify some defaults using <code>gst_get_var</code> and <code>gst_set_var</code>,
+and then call <code>gst_initialize</code>.
+
+   <p>Variable indices that can be passed to  <code>gst_get_var</code> and
+<code>gst_set_var</code> include:
+
+     <dl>
+<dt><code>GST_DECLARE_TRACING</code><br><dt><code>GST_EXECUTION_TRACING</code><br><dt><code>GST_EXECUTION_TRACING_VERBOSE</code><br><dt><code>GST_GC_MESSAGE</code><br><dt><code>GST_VERBOSITY</code><br><dt><code>GST_MAKE_CORE_FILE</code><br><dt><code>GST_REGRESSION_TESTING</code><dd></dl>
+
+   <p>While the flags that can be passed as the last parameter to
+<code>gst_initialize</code> are any combination of these:
+
+     <dl>
+<dt><code>GST_REBUILD_IMAGE</code><br><dt><code>GST_MAYBE_REBUILD_IMAGE</code><br><dt><code>GST_IGNORE_USER_FILES</code><br><dt><code>GST_IGNORE_BAD_IMAGE_NAME</code><br><dt><code>GST_IGNORE_BAD_IMAGE_PATH</code><br><dt><code>GST_IGNORE_BAD_KERNEL_PATH</code><br><dt><code>GST_NO_TTY</code><dd></dl>
+
+   <p>Note that <code>gst_initialize</code> will likely take some time (from a
+tenth of a second to 3-4 seconds), because it has to check if the image
+file must be be rebuilt and, if so, it reloads and recompiles the over 50,000
+lines of Smalltalk code that form a basic image.  To avoid this check, pass a
+valid image file as the second argument to <code>gst_initialize</code>.
+
+   <p>The result of <code>gst_init_smalltalk</code> is <code>0</code> for success,
+while anything else is an error code.
+
+   <p>If you're using <span class="sc">gnu</span> Smalltalk as an extension library, you might also want to
+disable the two <code>ObjectMemory</code> class methods, <code>quit</code> and
+<code>quit:</code> method.  I advice you not to change the Smalltalk kernel
+code.  Instead, in the script that loads your extension classes add
+these two lines:
+
+<pre class="example">     ObjectMemory class compile: 'quit        self shouldNotImplement'!
+     ObjectMemory class compile: 'quit: n     self shouldNotImplement'!
+</pre>
+   <p>which will effectively disable the two offending methods.  Other
+possibilities include using <code>atexit</code> (from the C library) to exit
+your program in a less traumatic way, or redefining these two methods to
+exit through a call out to a C routine in your program.
+
+   <p>Also, note that it is not a problem if you develop the class libraries
+for your programs within <span class="sc">gnu</span> Smalltalk's environment (which will not call
+<code>defineCFunc</code> for your own C call-outs), since the addresses of
+the C call-outs are looked up again when an image is restored.
+
+   </body></html>
+

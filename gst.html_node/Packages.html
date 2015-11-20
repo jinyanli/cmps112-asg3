@@ -1,0 +1,227 @@
+<html lang="en">
+<head>
+<title>Packages - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Features.html#Features" title="Features">
+<link rel="next" href="Emacs.html#Emacs" title="Emacs">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Packages"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Emacs.html#Emacs">Emacs</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Features.html#Features">Features</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr>
+</div>
+
+<h2 class="chapter">3 Packages</h2>
+
+<p><span class="sc">gnu</span> Smalltalk includes a packaging system which allows one to file in components
+(often called <dfn>goodies</dfn> in Smalltalk's very folkloristic
+terminology) without caring of whether they need other goodies to be
+loaded first.
+
+   <p>The packaging system is implemented by a Smalltalk class,
+<code>PackageLoader</code>, which looks for information about packages in
+the XML file named (guess what) <samp><span class="file">packages.xml</span></samp>, in one of three
+places:
+     <ul>
+<li>the kernel directory's parent directory; this is where
+  an installed <samp><span class="file">packages.xml</span></samp> resides, in a system-wide data
+  directory such as <samp><span class="file">/usr/local/share/smalltalk</span></samp>;
+<li>in the file <samp><span class="file">.st/packages.xml</span></samp>, hosting per-user packages;
+<li>finally, there can be a <samp><span class="file">packages.xml</span></samp> in the same directory
+  as the current image. 
+</ul>
+
+   <p>There are two ways to load something using the packaging system. The
+first way is to use the PackageLoader's <code>fileInPackage:</code> and
+<code>fileInPackages:</code> methods.  For example:
+
+<pre class="example">         PackageLoader fileInPackages: #('Blox' 'Browser').
+         PackageLoader fileInPackage: 'Compiler'.
+</pre>
+   <p>The second way is to use the <samp><span class="file">gst-load</span></samp> script which is installed
+together with the virtual machine.  For example, you can do:
+
+   <p><tt>    gst-load Browser Blox Compiler</tt>
+
+<p class="noindent">and <span class="sc">gnu</span> Smalltalk will automatically file in:
+
+     <ul>
+<li>BloxTK, needed by Blox
+<li>Blox, loaded first because Browser needs it
+<li>Parser, not specified, but needed by Browser and Compiler
+<li>Browser
+<li>Compiler (Blox is skipped because it has already been loaded)
+</ul>
+
+   <p>Then it will save the Smalltalk image, and finally exit.
+
+   <p><samp><span class="file">gst-load</span></samp> supports several options:
+
+     <dl>
+<dt><samp><span class="option">-I</span></samp><dt><samp><span class="option">--image-file</span></samp><dd>Load the packages inside the given image.
+
+     <br><dt><samp><span class="option">-i</span></samp><dt><samp><span class="option">--rebuild-image</span></samp><dd>Build an image from scratch and load the package into it.  Useful
+when the image specified with <samp><span class="option">-I</span></samp> does not exist yet.
+
+     <br><dt><samp><span class="option">-q</span></samp><dt><samp><span class="option">--quiet</span></samp><dd>Hide the script's output.
+
+     <br><dt><samp><span class="option">-v</span></samp><dt><samp><span class="option">--verbose</span></samp><dd>Show which files are loaded, one by one.
+
+     <br><dt><samp><span class="option">-f</span></samp><dt><samp><span class="option">--force</span></samp><dd>If a package given on the command-line is already present, reload it. 
+This does not apply to automatically selected prerequisites.
+
+     <br><dt><samp><span class="option">-t</span></samp><dt><samp><span class="option">--test</span></samp><dd>Run the package testsuite before installing, and exit with a failure
+if the tests fail.  Currently, the testsuites are placed in the image
+together with the package, but this may change in future versions.
+
+     <br><dt><samp><span class="option">-n</span></samp><br><dt><samp><span class="option">--dry-run</span></samp><dd>Do not save the image after loading.
+
+     <br><dt><samp><span class="option">--start[=ARG]</span></samp><dd>Start the services identified by the package.  If an argument is
+given, only one package can be specified on the command-line.  If
+at least one package specifies a startup script, <code>gst-load</code>
+won't exit. 
+</dl>
+
+   <p>To provide support for this system, you have to give away with your <span class="sc">gnu</span> Smalltalk
+goodies a small file (usually called <samp><span class="file">package.xml</span></samp>) which looks like
+this:
+<pre class="example">     &lt;packages&gt;
+     &lt;package&gt;
+       &lt;name&gt;BloxGTK&lt;/name&gt;
+       &lt;namespace&gt;BLOX&lt;/namespace&gt;
+       &lt;directory&gt;blox-gtk&lt;/directory&gt;
+     
+       &lt;!-- <span class="roman">The </span><code>prereq</code><span class="roman"> tag identifies packages that
+            must be loaded before this one.</span> --&gt;
+       &lt;prereq&gt;GTK&lt;/prereq&gt;
+     
+       &lt;!-- <span class="roman">The </span><code>provides</code><span class="roman"> tag identifies packages that
+            need not be loaded once this one is.</span> --&gt;
+       &lt;provides&gt;BLOX&lt;/provides&gt;
+     
+       &lt;!-- <span class="roman">The </span><code>filein</code><span class="roman"> tag identifies packages that
+            compose this package and that should be loaded in the
+            image in this order.</span> --&gt;
+       &lt;filein&gt;BloxBasic.st&lt;/filein&gt;
+       &lt;filein&gt;BloxWidgets.st&lt;/filein&gt;
+       &lt;filein&gt;BloxText.st&lt;/filein&gt;
+       &lt;filein&gt;BloxExtend.st&lt;/filein&gt;
+       &lt;filein&gt;Blox.st&lt;/filein&gt;
+     
+       &lt;!-- <span class="roman">The </span><code>file</code><span class="roman"> tag identifies packages that
+            compose this package's distribution.</span> --&gt;
+       &lt;file&gt;Blox.st&lt;/file&gt;
+       &lt;file&gt;BloxBasic.st&lt;/file&gt;
+       &lt;file&gt;BloxWidgets.st&lt;/file&gt;
+       &lt;file&gt;BloxText.st&lt;/file&gt;
+       &lt;file&gt;BloxExtend.st&lt;/file&gt;
+     &lt;/package&gt;
+     &lt;/packages&gt;
+</pre>
+   <p>Other tags exist:
+     <dl>
+<dt><code>module</code><dd>Loads a dynamic shared object and calls the <code>gst_initModule</code>
+function in it.  Modules can register functions so that Smalltalk
+code can call them, and can interact with or manipulate Smalltalk
+objects.  The <code>Sockets</code> package uses a module to provide a bridge
+to the socket functions.
+
+     <br><dt><code>library</code><dd>Loads a dynamic shared object and registers the functions in it
+so that they can all be called from Smalltalk code.  The <code>GTK</code>
+package registers the GTK+ library in this way, so that the
+bindings can use them.
+
+     <br><dt><code>callout</code><dd>Instructs to load the package only if the C function whose name is
+within the tag is available to be called from Smalltalk code.
+
+     <br><dt><code>sunit</code><dd>Specifies a testing script that <samp><span class="file">gst-sunit</span></samp> (see <a href="SUnit.html#SUnit">SUnit</a>) will
+run in order to test the package.  If this is specified, the package
+should list <code>SUnit</code> among the prerequisites.
+
+     <br><dt><code>start</code><dd>Specifies a Smalltalk script that <samp><span class="file">gst-load</span></samp> and <samp><span class="file">gst-remote</span></samp>
+will execute in order to start the execution of the service implemented
+in the package.  Before executing the script, <code>%1</code> is replaced
+with either <code>nil</code> or a String literal.
+
+     <br><dt><code>stop</code><dd>Specifies a Smalltalk script that <samp><span class="file">gst-remote</span></samp>
+will execute in order to shut down the service implemented
+in the package.  Before executing the script, <code>%1</code> is replaced
+with either <code>nil</code> or a String literal.
+
+     <br><dt><code>test</code><dd>Specifies a subpackage that is only loaded by <samp><span class="file">gst-sunit</span></samp> in order
+to test the package.  The subpackage may include arbitrary tags (including
+<code>file</code>, <code>filein</code> and <code>sunit</code>) but not <code>name</code>. 
+The <code>SUnit</code> package is implicitly made a prerequisite
+of the testing subpackage, and the default value of <code>directory</code> and
+<code>namespace</code> is the one given for the outer package. 
+</dl>
+
+   <p>To install your package, you only have to do
+<pre class="example">         gst-package path/to/package.xml
+</pre>
+   <p><samp><span class="command">gst-package</span></samp> is a Smalltalk script which will create
+a <samp><span class="file">.star</span></samp> archive in the current image directory, with the
+files specified in the <code>file</code> tags.  By default the package is
+placed in the system-wide package directory; you can use the option
+<samp><span class="option">--target-directory</span></samp> to create the <samp><span class="file">.star</span></samp> file elsewhere.
+
+   <p>Alternatively, <code>gst-package</code> can be used to create a skeleton
+GNU style source tree.  This includes a <samp><span class="file">configure.ac</span></samp> that will
+find the installation path of GNU Smalltalk, and a <samp><span class="file">Makefile.am</span></samp>
+to support all the standard Makefile targets (including <samp><span class="command">make
+install</span></samp> and <samp><span class="command">make dist</span></samp>).  To do so, go in the directory that
+is to become the top of the source tree and type.
+
+<pre class="example">         gst-package --prepare path1/package.xml path2/package.xml
+</pre>
+   <p>In this case the generated configure script and Makefile will use more
+features of <samp><span class="command">gst-package</span></samp>, which are yet to be documented. 
+The <span class="sc">gnu</span> Smalltalk makefile similarly uses <samp><span class="command">gst-package</span></samp> to install
+packages and to prepare the distribution tarballs.
+
+   <p>The rest of this chapter discusses some of the packages provided with <span class="sc">gnu</span> Smalltalk.
+
+<ul class="menu">
+<li><a accesskey="1" href="Blox.html#Blox">Blox, BloxTK, and Browser</a>
+<li><a accesskey="2" href="Smalltalk_002din_002dSmalltalk.html#Smalltalk_002din_002dSmalltalk">Parser, STInST, Compiler</a>
+<li><a accesskey="3" href="Database.html#Database">DBI</a>
+<li><a accesskey="4" href="Locales.html#Locales">I18N</a>
+<li><a accesskey="5" href="Seaside.html#Seaside">Seaside</a>
+<li><a accesskey="6" href="Swazoo.html#Swazoo">Swazoo</a>
+<li><a accesskey="7" href="SUnit.html#SUnit">SUnit</a>
+<li><a accesskey="8" href="Network-support.html#Network-support">Sockets, WebServer, NetClients</a>
+<li><a accesskey="9" href="XML.html#XML">XML, XPath, XSL</a>
+<li><a href="Other-packages.html#Other-packages">Other packages</a>
+</ul>
+
+   </body></html>
+

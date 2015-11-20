@@ -1,0 +1,68 @@
+<html lang="en">
+<head>
+<title>Network support - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Packages.html#Packages" title="Packages">
+<link rel="prev" href="SUnit.html#SUnit" title="SUnit">
+<link rel="next" href="XML.html#XML" title="XML">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Network-support"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="XML.html#XML">XML</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="SUnit.html#SUnit">SUnit</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Packages.html#Packages">Packages</a>
+<hr>
+</div>
+
+<h3 class="section">3.8 Sockets, WebServer, NetClients</h3>
+
+<p><span class="sc">gnu</span> Smalltalk includes an almost complete abstraction of the <span class="sc">tcp</span>, <span class="sc">udp</span>
+and <span class="sc">ip</span> protocols.  Although based on the standard <span class="sc">bsd</span> sockets,
+this library provides facilities such as buffering and preemptive I/O
+which a C programmer usually has to implement manually.
+
+   <p>The distribution includes a few tests (mostly loopback tests that
+demonstrate both client and server connection), which are class methods
+in <code>Socket</code>.  This code should guide you in the process of creating
+and using both server and client sockets; after creation, sockets behave
+practically the same as standard Smalltalk streams, so you should not
+have particular problems.  For more information, refer to <a href="../gst-libs/Sockets.html#Sockets">Network programming with Sockets</a>. 
+The library is also used by many other packages, including Swazoo
+and the MySQL driver.
+
+   <p>There is also code implementing the most popular Internet protocols:
+<span class="sc">ftp</span>, <span class="sc">http</span>, <span class="sc">nntp</span>, <span class="sc">smtp</span>, <span class="sc">pop3</span> and <span class="sc">imap</span>. 
+These classes, loaded by the <code>NetClients</code> package, are derived
+from multiple public domain and free software packages available for
+other Smalltalk dialects and ported to <span class="sc">gnu</span> Smalltalk.  Future version of
+<span class="sc">gnu</span> Smalltalk will include documentation for these as well.
+
+   </body></html>
+

@@ -1,0 +1,68 @@
+<html lang="en">
+<head>
+<title>Dynamic loading - GNU Smalltalk User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU Smalltalk User's Guide">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Features.html#Features" title="Features">
+<link rel="prev" href="Object-dumping.html#Object-dumping" title="Object dumping">
+<link rel="next" href="Documentation.html#Documentation" title="Documentation">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included
+     in the section entitled ``GNU Free Documentation License''.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Dynamic-loading"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="Documentation.html#Documentation">Documentation</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Object-dumping.html#Object-dumping">Object dumping</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Features.html#Features">Features</a>
+<hr>
+</div>
+
+<h3 class="section">2.6 Dynamic loading</h3>
+
+<p>The <code>DLD</code> class enhances the C callout mechanism to automatically look
+for unresolved functions in a series of program-specified libraries.  To
+add a library to the list, evaluate code like the following:
+<pre class="example">          DLD addLibrary: 'libc'
+</pre>
+   <p>The extension (<samp><span class="file">.so</span></samp>, <samp><span class="file">.sl</span></samp>, <samp><span class="file">.a</span></samp>, <samp><span class="file">.dll</span></samp> depending
+on your operating system) will be added automatically.  You are advised
+not to specify it for portability reasons.
+
+   <p>You will then be able to use the standard C call-out mechanisms
+to define all the functions in the C run-time library.  Note
+that this is a potential security problem (especially if your program is
+SUID root under Unix), so you might want to disable dynamic loading when
+using <span class="sc">gnu</span> Smalltalk as an extension language.  To disable dynamic loading,
+configure <span class="sc">gnu</span> Smalltalk passing the <samp><span class="option">--disable-dld</span></samp> switch.
+
+   <p>Note that a <code>DLD</code> class will be present even if dynamic loading is
+disabled (either because your system is not supported, or by the
+<samp><span class="option">--disable-dld</span></samp> configure switch) but any attempt to perform
+dynamic linking will result in an error.
+
+   </body></html>
+
