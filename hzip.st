@@ -24,18 +24,18 @@ FileStream extend [
    ]
 ]
 
-"extend methods for Character class"
+"add helper methods for Character class"
 Character extend [
    isPrint [
       ^ (Character space < self) & (self <= $~)
    ]
-   length[
+   digits[
          ^ (self asInteger) > 15
          ]
    visible [
- 
+        "stdout << (self asInteger)."
       self isPrint ifTrue: [^' ', self asString, ' ']             
-                   ifFalse: [ self length
+                   ifFalse: [ self digits
                       ifTrue:[((self asInteger) = 256)
                               ifTrue:[ ^ 'EOF']ifFalse:[^ 'x',
                               ((self asInteger printStringRadix: 16)
@@ -50,7 +50,7 @@ Character extend [
    ]
 ]
 
-"zeroArray class is for storing data"
+"an zeroArray class to store data"
 Object subclass: ZeroArray [
    |theArray|
 
@@ -94,8 +94,11 @@ Object subclass: ZeroArray [
    ]
 ]
 
+freqtable := ZeroArray new: 257.
+encodetable := ZeroArray new: 257.
+freqtable at:256 put:1.
 
-"leaf class to hold a character and its
+"a leaf data structure to hold character and its
 frequency"
 Object subclass: Leaf [
    |char count isleaf|
@@ -143,7 +146,7 @@ Object subclass: Leaf [
    ]
 ]
 
-"tree class to hold leaves"
+"a tree data structure to hold leaves"
 Leaf subclass: Tree [
    |left right|
 
@@ -183,7 +186,7 @@ Leaf subclass: Tree [
    ]
 ]
 
-"OutBits class is for writing bits to output file"
+"a class for writing bits to output file"
 Object subclass: OutBits [
    |bitIndex currentByte myStream|
    OutBits class >> new [
@@ -216,7 +219,7 @@ Object subclass: OutBits [
    ]
 ]
 
-"BitStream class is for reading bits from input file"
+"a class for reading bits from input file"
 Object subclass: BitStream [
    |bitIndex byte myStream|
    BitStream class >> new: fileStream [
@@ -242,10 +245,10 @@ Object subclass: BitStream [
    ]
 ]
 
-"--------below is the main function----------"
+"main function"
 
-"variable to hold file stream"
-|infile infile2 outfile|
+"var to hold pipline for input stream"
+|infile infile2 outfile dcpfile outfilename argcount|
 
 dFlag := false.
 cFlag := false.
@@ -254,21 +257,29 @@ uFlag := false.
 
 argcount:=0.
 
-"check the options and 
- crete file stream"Smalltalk arguments: '-d -t -c -u'
+
+"parse the options and filename"Smalltalk arguments: '-d -t -c -u'
 do: [:opt :arg |
    
    (opt = $d) ifTrue: [
-   dFlag := true.].
+   dFlag := true.
+   "stdout <<'-d option is set'<<nl."
+    ].
     
    (opt = $t) ifTrue: [
-   tFlag := true.].
+   tFlag := true.
+   "stdout <<'-t option is set'<<nl."
+    ].
 
   (opt = $c) ifTrue: [
-   cFlag := true.].
+   cFlag := true.
+   "stdout <<'-c option is set'<<nl."
+   ].
 
   (opt = $u) ifTrue: [
-    uFlag := true.].
+    uFlag := true.
+   "stdout <<'-u option is set'<<nl."
+   ].
   
   (arg ~= nil) ifTrue: [
     
@@ -294,11 +305,9 @@ do: [:opt :arg |
    ].
 ].
 
-freqtable := ZeroArray new: 257.
-encodetable := ZeroArray new: 257.
-freqtable at:256 put:1.
 
 uFlag ifFalse:[
+
 
 "build frequency table"
 [infile atEnd not] whileTrue: [
@@ -307,30 +316,37 @@ uFlag ifFalse:[
    freqtable incr: ordChar.
 ].
 
+"stdout <<  'freqtable at:256  '<<(freqtable at: 256)<< nl.
+"
 freqtable keysAndValuesDo: [:key :count |
    (count notNil and: [count > 0]) ifTrue: [
       queue add: (Leaf new: key count: count).
+      "stdout <<  key asCharacter visible << '     ' << count
+             << nl."
    ]
 ].
 
+"stdout <<'output from sortedCollection'<< nl.
+queue do: [:item| stdout << item << nl.]."
 
-"bulid decoding tree"
+"stdout << nl << '----bulid tree-----' << nl."
 [queue size >1 ] whileTrue: [
    |leftchild rightchild|
    
    leftchild := queue removeFirst.
    rightchild := queue removeFirst.
    newtree := ( Tree new: (leftchild char)
-                     count: (leftchild count) + (rightchild count)
-                     left: leftchild
-                     right: rightchild).
+                      count: (leftchild count) +  (rightchild count)
+                      left: leftchild right: rightchild).
    queue add: newtree.
 ].
 decodingtree:=queue removeFirst.
 
-"build encoding table"
+"stdout << nl << 'build encode table' << nl."
 decodingtree inorder: [:char :string |
    encodetable at: char put: string.
+   "stdout <<  char asCharacter visible<<'    '<< (freqtable at: char) 
+               <<'        ' << string << nl."
 ] prefix: ''.
 
 "convert decoding tree into binary"
@@ -339,27 +355,27 @@ decodingtree postorder: [:char :isleaf |
 
    isleaf  ifFalse:[binarytree:=binarytree,'1'.]
                 ifTrue:[
-                   binstring:=''.
+                   bin:=''.
                    char = 256
-                        ifTrue:[binstring:='000000001']
+                        ifTrue:[bin:='000000001']
                         ifFalse:[
-                           char=0 ifTrue:[binstring:='000000000']
-                               ifFalse:[
-                                8 to:1 by: -1 do:[:i|
-                                  binstring:=binstring,
-                                     ((char bitAt:i) printString).
+                           char=0 ifTrue:[bin:='000000000']
+                                  ifFalse:[
+                                     8 to:1 by: -1 do:[:i|
+                                     bin:=bin,((char bitAt:i)
+                                                       printString).
                                    ]
                         ].               
                  ].
-                 binarytree:=(binarytree,'0',binstring).
+                 binarytree:=(binarytree,'0',bin).
               ].
 ].
 
-"prints decoding tree and encoding table to stdout"
+"decoding tree and table is printed to stdout"
 tFlag ifTrue:[
-     stdout <<nl<< '------------decoding tree--------------' << nl
-            << decodingtree << nl<<nl
-            <<'binary decoding tree: '<<nl<<binarytree << nl.
+     stdout <<nl<< '------------decoding tree--------------' << nl.
+     stdout << decodingtree << nl<<nl.
+     stdout <<'binary decoding tree: '<<nl<<binarytree << nl.
 
      stdout <<nl<< '------------encoding table-------------' << nl.
      encodetable keysAndValuesDo: [:key :count |
@@ -372,7 +388,7 @@ tFlag ifTrue:[
 ].
 
 
-"when -c option is set performs compression"
+"perform compression"
 cFlag  ifTrue:[ 
 
 outfile~=nil ifTrue:[
@@ -381,7 +397,7 @@ outfile~=nil ifTrue:[
     stdout <<nl<< 'cFlag = '<<cFlag 
           <<'  output file = true'<< nl.].
 
-   "write binary decoding tree to output file"   
+   "output binary decoding tree"   
    outBytes := OutBits new: outfile.    
    1 to: (binarytree size) by: 1 do: [:index |
          bit:= ((binarytree at: index) asInteger) - 48.
@@ -394,22 +410,19 @@ outfile~=nil ifTrue:[
 
    "output encoded data" 
    [infile2 atEnd not] whileTrue: [
-      |ordChar|
-       ordChar := infile2 next asInteger.
-       code:= (encodetable at: ordChar). 
+      |ordChar2|
+       ordChar2 := infile2 next asInteger.
+       code:= (encodetable at: ordChar2). 
        1 to: (code size) by: 1 do: [:index |
          bit:= ((code at: index) asInteger) - 48.
          outBytes writeBit: bit.
           ].
        ].
 
-   "output eof at the end"
    eof:= (encodetable at: 256).
    1 to: (eof size) by: 1 do: [:index |
          bit:= ((eof at: index) asInteger) - 48.
          outBytes writeBit: bit.].     
-
-   "pad the output"
    outBytes flushByte.
 ]
 ifFalse:[
@@ -417,8 +430,7 @@ ifFalse:[
    stdout <<nl<< 'cFlag = '<<cFlag
               <<' without output file'<< nl.].
     
-   stdout <<nl<< '----------encoded data----------' << nl.
-
+   stdout <<nl<< '----------encoded input in binary----------' << nl.
     "add at the end 1 bit for checking 
       whether the tree is completed"
    stdout <<binarytree<<1.      
@@ -583,3 +595,4 @@ dFlag ifTrue: [
 stdout<<nl<<'Exit Status: '<<ExitStatus<<nl.
 stdout<<'Finished '<<nl.
 ].
+
